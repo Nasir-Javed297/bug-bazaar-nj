@@ -10,11 +10,13 @@ export default function App() {
   const [bugs, setBugs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null);
+  const [retry, setRetry] = useState(0)
 
   useEffect(() => {
        
         const loadBugs = async () => {
-            
+            setLoading(true);
+            setError(null);
             try{
                 const data = await fetchBugs() 
                 setBugs(data)
@@ -31,11 +33,11 @@ export default function App() {
 
         loadBugs();
        
-    }, [])
+    }, [retry])
 
   return (
     <Routes>
-      <Route path="/" element={<Home bugs={bugs} setBugs={setBugs} loading={loading} error={error}/>} />
+      <Route path="/" element={<Home bugs={bugs} setBugs={setBugs} loading={loading} error={error} setRetry={setRetry}/>} />
       <Route path="/bugs/:id" element={<BugDetails bugs={bugs} loading={loading} />}/>
       <Route path="*" element={<NotFound />} />    
     </Routes>

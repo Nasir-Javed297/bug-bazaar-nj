@@ -2,7 +2,7 @@ import { useState } from "react"
 import { BugList } from "../components/BugList";
 
 
-export const Home = ({bugs, setBugs, loading, error}) => {
+export const Home = ({bugs, setBugs, loading, error, setRetry}) => {
     const [search, setSearch] = useState("")
     const [title, setTitle] = useState("")
     const [severity, setSeverity] = useState("Low")
@@ -12,7 +12,16 @@ export const Home = ({bugs, setBugs, loading, error}) => {
     } 
     
     if(error){
-        return <p>{error}</p>
+        return (
+            <>
+            <p>{error}</p>
+            <button onClick={() => setRetry(prev => prev + 1)}>
+                Retry
+            </button>
+            </>
+        )
+        
+        
     }
 
     const filterBugs = bugs.filter((bug) => (
@@ -40,7 +49,6 @@ export const Home = ({bugs, setBugs, loading, error}) => {
 
     return(
         <div className="main-wrapper">
-
             <form className="report-form" onSubmit={handleSubmit}>
                 <h2>Report a Bug</h2>
                 <p className="form-subtitle">Found an issue? Let us know.</p>
