@@ -5,6 +5,7 @@ const BUGS = [
 ];
 
 export function fetchBugs() {
+  
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       if (Math.random() < 0.25) {
