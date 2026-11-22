@@ -547,3 +547,16 @@ Also named: render prop (`QueryStateView`), network facade enforced by ESLint, i
 - **Recommendation:** give stock one home (live updates patch the cache, plus a time limit and 409 invalidation), and document it with a caching section and data-flow diagram.
 
 **How:** every claim was checked against their code by reading the imports and call sites; the app wasn't run, and the review says so.
+
+## D5-6: Code review of my partner's PR
+
+**Written:** [`docs/reviews/code-review.md`](reviews/code-review.md): 9 comments plus 3 bits of praise on [mumairkhan115/Bug-Bazaar-Umair#1](https://github.com/mumairkhan115/Bug-Bazaar-Umair/pull/1), each with file, line, steps to reproduce and a suggested fix.
+
+- **Correctness:** CI fails at `npm ci` (eslint 10 vs `eslint-plugin-jsx-a11y` peer ≤ 9; reproduced locally) and the PR was merged while red; a breakpoint effect resets `page` to 1 for shared links on desktop; the product page can show sold-out stock as available; the error-simulation control ships to shoppers and lives in the URL.
+- **Readability:** an identical ternary in checkout; an empty PR description.
+- **Accessibility:** no `<h1>` and skipped heading levels; result count and feed status aren't live regions; no focus on the first invalid login field.
+- **Praise:** the pure `handleApi` contract, the idempotent checkout, the careful login form.
+
+**How:** findings were traced through the code (callers, defaults, imports). Their app and tests weren't run, and the review says so.
+
+**My own PR:** no comments or reviews on #1 yet (checked 23 Nov); replies will be added to the same file.
