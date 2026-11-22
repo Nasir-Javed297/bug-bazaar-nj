@@ -29,6 +29,10 @@ import { getScenarios } from "./scenarios";
 const url = (path: string) => `${config.apiBaseUrl}${path}`;
 
 // ---------- Helpers ----------
+//
+// Error messages are deliberately TECHNICAL, like a real backend's. The app must never show
+// them (task D3-4): it shows its own text from src/api/errorMessages.ts. A technical message
+// on screen is therefore an obvious bug, which makes "raw messages never reach the screen" testable.
 
 /** Builds an error response in the contract's ApiError shape. */
 function apiError(
@@ -45,12 +49,14 @@ function apiError(
  * Runs before every handler. Adds realistic latency and applies the outage switch.
  * Returns an error response to send, or undefined to continue.
  */
-async function simulateServer(): Promise<HttpResponse | undefined> {
+async function simulateServer(): Promise<Response | undefined> {
   const scenarios = getScenarios();
+  // Dev panel "Network down": no response at all, so fetch() rejects (status 0 in the app).
+  if (scenarios.networkDown) return HttpResponse.error();
   // delay() with no argument = realistic random latency (100-400 ms in the browser).
   await (scenarios.slowNetwork ? delay(2000 + Math.random() * 2000) : delay());
   if (scenarios.serverOutage) {
-    return apiError(500, "INTERNAL_ERROR", "The server is temporarily unavailable.");
+    return apiError(500, "INTERNAL_ERROR", "Service unavailable (simulated outage)");
   }
   return undefined;
 }
@@ -61,7 +67,7 @@ function authenticate(request: Request): User | undefined {
   return getUserFromAuthHeader(request.headers.get("Authorization"));
 }
 
-const unauthorized = () => apiError(401, "UNAUTHORIZED", "Please log in to continue.");
+const unauthorized = () => apiError(401, "UNAUTHORIZED", "Missing or invalid bearer token");
 
 /** Request bodies come from outside, so they start as `unknown` and must be checked. */
 async function readJson(request: Request): Promise<unknown> {
@@ -84,7 +90,7 @@ export const handlers = [
     const failure = await simulateServer();
     if (failure) return failure;
     if (getScenarios().failProductList) {
-      return apiError(500, "INTERNAL_ERROR", "Could not load products.");
+      return apiError(500, "INTERNAL_ERROR", "Product query failed (simulated)");
     }
 
     const params = new URL(request.url).searchParams;
@@ -116,7 +122,7 @@ export const handlers = [
 
     const product = getProduct(params.id);
     if (!product) {
-      return apiError(404, "NOT_FOUND", "We couldn't find that product.");
+      return apiError(404, "NOT_FOUND", `Product ${params.id} not found`);
     }
     return HttpResponse.json<Product>(product);
   }),
@@ -135,12 +141,12 @@ export const handlers = [
     else if (!/^\S+@\S+\.\S+$/.test(email)) fieldErrors.email = "Enter a valid email address.";
     if (!password) fieldErrors.password = "Password is required.";
     if (Object.keys(fieldErrors).length > 0) {
-      return apiError(400, "VALIDATION_ERROR", "Please fix the highlighted fields.", fieldErrors);
+      return apiError(400, "VALIDATION_ERROR", "Validation failed: login", fieldErrors);
     }
 
     const user = findUserByCredentials(email, password);
     if (!user) {
-      return apiError(401, "INVALID_CREDENTIALS", "Email or password is incorrect.");
+      return apiError(401, "INVALID_CREDENTIALS", "Invalid credentials");
     }
     return HttpResponse.json<LoginResponse>({ token: createToken(user.id), user });
   }),
@@ -167,9 +173,14 @@ export const handlers = [
     const body = await readJson(request);
     const rawItems = isRecord(body) ? body.items : undefined;
     if (!Array.isArray(rawItems) || rawItems.length === 0) {
-      return apiError(400, "VALIDATION_ERROR", "Your cart is empty.", {
-        items: "Add at least one item.",
-      });
+      return apiError(
+        400,
+        "VALIDATION_ERROR",
+        "Validation failed: items must be a non-empty array",
+        {
+          items: "Add at least one item.",
+        },
+      );
     }
 
     // Merge duplicate lines, e.g. two lines of the same duck become one line of 2.
@@ -178,14 +189,19 @@ export const handlers = [
       const productId = isRecord(item) ? item.productId : undefined;
       const quantity = isRecord(item) ? item.quantity : undefined;
       if (typeof productId !== "string" || !getProduct(productId)) {
-        return apiError(400, "VALIDATION_ERROR", "One of the items doesn't exist.", {
+        return apiError(400, "VALIDATION_ERROR", "Validation failed: unknown productId", {
           [`items.${index}.productId`]: "Unknown product.",
         });
       }
       if (typeof quantity !== "number" || !Number.isInteger(quantity) || quantity < 1) {
-        return apiError(400, "VALIDATION_ERROR", "Quantities must be whole numbers above 0.", {
-          [`items.${index}.quantity`]: "Must be a whole number of at least 1.",
-        });
+        return apiError(
+          400,
+          "VALIDATION_ERROR",
+          "Validation failed: quantity must be an integer >= 1",
+          {
+            [`items.${index}.quantity`]: "Must be a whole number of at least 1.",
+          },
+        );
       }
       quantities.set(productId, (quantities.get(productId) ?? 0) + quantity);
     }
@@ -197,25 +213,35 @@ export const handlers = [
     // 409 on purpose (Dev panel): pretend the first item just sold out.
     const firstProduct = items[0] ? getProduct(items[0].productId) : undefined;
     if (getScenarios().forceOutOfStock && firstProduct) {
-      return apiError(409, "OUT_OF_STOCK", `${firstProduct.name} just sold out.`, {
-        productId: firstProduct.id,
-        productName: firstProduct.name,
-        available: "0",
-      });
+      return apiError(
+        409,
+        "OUT_OF_STOCK",
+        `Insufficient stock for ${firstProduct.id} (simulated)`,
+        {
+          productId: firstProduct.id,
+          productName: firstProduct.name,
+          available: "0",
+        },
+      );
     }
 
     const result = createOrder(user.id, items, request.headers.get("Idempotency-Key"));
     if (!result.ok) {
       const { product } = result;
-      return apiError(409, "OUT_OF_STOCK", `Only ${product.stock} of ${product.name} left.`, {
-        productId: product.id,
-        productName: product.name,
-        available: String(product.stock),
-      });
+      return apiError(
+        409,
+        "OUT_OF_STOCK",
+        `Insufficient stock for ${product.id}: requested ${result.requested}, available ${product.stock}`,
+        {
+          productId: product.id,
+          productName: product.name,
+          available: String(product.stock),
+        },
+      );
     }
     // Dev panel switch: the order IS saved, but the client never hears back (task D3-2).
     if (getScenarios().loseOrderResponse) {
-      return apiError(500, "INTERNAL_ERROR", "The connection was interrupted.");
+      return apiError(500, "INTERNAL_ERROR", "Connection reset after commit (simulated)");
     }
     return HttpResponse.json<Order>(result.order, { status: 201 });
   }),
@@ -229,7 +255,7 @@ export const handlers = [
     if (!user) return unauthorized();
 
     const order = getOrder(params.id, user.id);
-    if (!order) return apiError(404, "NOT_FOUND", "We couldn't find that order.");
+    if (!order) return apiError(404, "NOT_FOUND", `Order ${params.id} not found`);
     return HttpResponse.json<Order>(order);
   }),
 ];

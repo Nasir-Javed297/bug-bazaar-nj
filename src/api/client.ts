@@ -125,6 +125,19 @@ export async function apiRequest<T>(
     };
   }
 
+  // A "successful" response we can't read (e.g. an HTML error page from a proxy) must not
+  // become `data: undefined` and crash the page: treat it as an error. (204 = "no content".)
+  if (body === undefined && response.status !== 204) {
+    return {
+      ok: false,
+      error: {
+        status: response.status,
+        code: "INVALID_RESPONSE",
+        message: "The server sent a response that isn't valid JSON.",
+      },
+    };
+  }
+
   // We trust a successful response to match the contract (docs/api-contract.md).
   // A schema validator (e.g. zod) could check this at runtime: see docs/decisions.md.
   return { ok: true, data: body as T };

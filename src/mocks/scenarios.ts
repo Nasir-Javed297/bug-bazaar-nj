@@ -23,6 +23,8 @@ export type MockScenarios = {
    * Retrying with the same Idempotency-Key must return the same order, not a second one.
    */
   loseOrderResponse: boolean;
+  /** Requests fail with no response at all, like being offline (status 0 in the app). */
+  networkDown: boolean;
 };
 
 export const DEFAULT_SCENARIOS: MockScenarios = {
@@ -33,6 +35,7 @@ export const DEFAULT_SCENARIOS: MockScenarios = {
   slowNetwork: false,
   outOfOrderSearch: false,
   loseOrderResponse: false,
+  networkDown: false,
 };
 
 export const SCENARIO_LABELS: Record<keyof MockScenarios, string> = {
@@ -43,6 +46,7 @@ export const SCENARIO_LABELS: Record<keyof MockScenarios, string> = {
   slowNetwork: "Slow network (+2-4 s)",
   outOfOrderSearch: "Out-of-order search (short queries answer last)",
   loseOrderResponse: "Checkout: order saved, reply lost (500)",
+  networkDown: "Network down (no response at all)",
 };
 
 export const SCENARIOS_STORAGE_KEY = "bug-bazaar:mock-scenarios";

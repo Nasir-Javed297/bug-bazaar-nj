@@ -50,16 +50,16 @@ export function LoginPage() {
       // replace: the login page isn't kept in history, so Back doesn't return to the form.
       navigate(redirectTo, { replace: true });
     } catch (err: unknown) {
-      const error = toClientError(err);
-      if (error.status === 400) {
-        // The server says which fields are wrong: { email: "Enter a valid email address." }
-        setFieldErrors({ email: error.details?.email, password: error.details?.password });
-        setFormError("Please fix the highlighted fields.");
-      } else if (error.status === 401) {
-        setFormError("Email or password is incorrect.");
-      } else {
-        setFormError(describeError(error).message);
+      // The shared mapping decides what each error means (src/api/errorMessages.ts).
+      const userError = describeError(toClientError(err));
+      if (userError.kind === "validation") {
+        // The server says which fields are wrong: { email: "…" }. Show each next to its field.
+        setFieldErrors({
+          email: userError.fieldErrors.email,
+          password: userError.fieldErrors.password,
+        });
       }
+      setFormError(userError.message);
     } finally {
       isSubmitting.current = false;
     }

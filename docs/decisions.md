@@ -269,3 +269,34 @@ Before, the app had three separate `useState` calls (`loading`, `error`, `bugs`)
 - _Handling 401 in each page._ Easy to forget on one page. The base query sees every response, so the rule is written once.
 - _Only disabling the button._ The disabled state applies on the next render, so two very fast submits could both get through. The ref check is synchronous.
 - _Client-side validation only (`required`, `type="email"`)._ The form uses `noValidate` so the server's 400 field errors are shown consistently (and D3-4 can map them). Browser validation would be a nice extra on top, not a replacement: the server must validate anyway.
+
+## D3-4: Backend errors
+
+**Used: one mapping, used everywhere.** `describeError(error)` in `src/api/errorMessages.ts` turns any `ClientError` into a `UserError`, a discriminated union saying **what kind** of problem it is and the words to show. Pages decide only what to _do_ with each kind.
+
+| Status           | `kind`         | What the user gets                                                                                                                                                                                                     | Where                               |
+| ---------------- | -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |
+| 400              | `validation`   | "Please check the highlighted fields." + each field's message next to that field (`aria-invalid`, `aria-describedby`)                                                                                                  | Login form, checkout                |
+| 401              | `unauthorized` | The **base query signs the user out** (only if a token was sent). Protected pages redirect to login: "Your session has expired". A wrong password (code `INVALID_CREDENTIALS`) gives "Email or password is incorrect." | `apiSlice.ts`, `RequireAuth`, login |
+| 404              | `notFound`     | A Not Found view, no retry (it can't help). `QueryStateView`'s `notFound` option handles it for every one-item page                                                                                                    | Product, order, unknown URLs        |
+| 409              | `outOfStock`   | Names the item and how many are left, and updates the cart to the real stock                                                                                                                                           | Checkout                            |
+| 500              | `retryable`    | "Something went wrong on our side…" + **Try again**                                                                                                                                                                    | Every data view, login, checkout    |
+| none (offline)   | `retryable`    | "We couldn't reach the server. Check your internet connection…" + **Try again**                                                                                                                                        | Same                                |
+| 2xx but not JSON | `retryable`    | Treated as an error by `client.ts` (`INVALID_RESPONSE`) instead of crashing on `undefined` data                                                                                                                        | Everywhere                          |
+
+**Raw error messages never reach the screen:**
+
+- `error.message` from the server is never rendered. Only texts written in `errorMessages.ts` (plus 400 field messages, next to their fields) are shown.
+- To make that **testable**, the mock now returns technical messages like a real backend ("Invalid credentials", "Product nope not found", "Missing or invalid bearer token", "Insufficient stock for p-0042: requested 3, available 1"). Any of them on screen would be an obvious leak.
+- `checkoutMessage` switches over every `kind` with no `default`. Adding a new kind is a compile error until checkout handles it (an **exhaustive switch**).
+
+**Verified in the browser** (a script checked the page text for 19 technical strings after each case, and found **0 leaks** in all of them):
+login 400 / 401 / 500 / network down; product 404; order 404; unknown URL; product list 500; product details 500; product list network down; checkout 409 ("Glow Debug Duck #42" just sold out, cart updated); checkout network down ("You won't be charged twice", same key kept); session expired → signed out and redirected with a notice.
+
+**Bug found by this testing:** the order confirmation page polled every 2 s "until completed". A missing order is never completed, so it polled a 404 forever and flickered to "Loading…" every 2 seconds. Polling now also stops after an error. Re-tested: 1 request, a stable Not Found screen, and real orders still poll through to "Confirmed".
+
+**Considered:**
+
+- _Error handling per page (the previous state)._ Login, checkout, product and order pages each had their own status checks and wording, and two messages for the same 401 already differed.
+- _A global toast for every error._ Consistent, but a toast can't show field errors next to fields, can't replace a page with Not Found, and disappears before screen-reader users can act on it.
+- _Showing the server's message when it "looks friendly"._ Couples the UI to backend wording, and one day the backend sends a stack trace.

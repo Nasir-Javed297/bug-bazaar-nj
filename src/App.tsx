@@ -43,7 +43,14 @@ export default function App() {
               </RequireAuth>
             }
           />
-          <Route path="/orders/:id" element={<OrderConfirmationPage />} />
+          <Route
+            path="/orders/:id"
+            element={
+              <RequireAuth>
+                <OrderConfirmationPage />
+              </RequireAuth>
+            }
+          />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

@@ -108,6 +108,10 @@ Everything above matches the shared contract. These additions don't break it:
 
 **Demo account:** `demo@bugbazaar.dev` / `password123`
 
+## Error messages
+
+The mock returns **technical** `message` texts, like a real backend ("Invalid credentials", "Product nope not found"). The app never shows them: it maps each status and `code` to its own wording in `src/api/errorMessages.ts` (task D3-4).
+
 ## How to trigger each error
 
 Open **🛠 Dev tools** (bottom-right corner of the app) for the switches. Switches are saved in `localStorage` and apply to the next request.
@@ -127,4 +131,5 @@ Open **🛠 Dev tools** (bottom-right corner of the app) for the switches. Switc
 | any                     | 500    | Dev tools → **Server outage** (tests the retry button anywhere)                                                                  |
 | `POST /api/orders`      | 500    | Dev tools → **Checkout: order saved, reply lost (500)**: the order IS saved; retrying with the same `Idempotency-Key` returns it |
 | `GET /api/products`     | order  | Dev tools → **Out-of-order search**: shorter searches reply later (race-condition test, D2-6)                                    |
+| any                     | none   | Dev tools → **Network down**: no response at all (the app shows "check your connection")                                         |
 | any                     | slow   | Dev tools → **Slow network** (+2-4 s, to see loading states)                                                                     |

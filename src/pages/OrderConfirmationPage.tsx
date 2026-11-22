@@ -1,5 +1,6 @@
 // Route "/orders/:id": confirmation after checkout, with the order's live status.
 // The order moves queued -> processing -> completed, so we poll until it's completed.
+// Protected by RequireAuth (App.tsx): an order belongs to a user.
 import { skipToken } from "@reduxjs/toolkit/query";
 import { Link, useParams } from "react-router-dom";
 import { api, useGetOrderQuery } from "../api/apiSlice";
@@ -7,7 +8,6 @@ import { toRequestState } from "../api/requestState";
 import { QueryStateView } from "../components/QueryStateView";
 import { useAppSelector } from "../store/hooks";
 import type { OrderStatus } from "../types/api";
-import { NotFound } from "./NotFound";
 
 const STEPS: { status: OrderStatus; label: string }[] = [
   { status: "queued", label: "Order received" },
@@ -21,21 +21,22 @@ const POLL_EVERY_MS = 2000;
 export function OrderConfirmationPage() {
   const { id } = useParams<{ id: string }>();
 
-  // The status already in the cache (from the previous poll), read BEFORE the hook below,
+  // What the cache already knows (from the previous poll), read BEFORE the hook below,
   // so we can tell the hook whether to keep polling.
   const cachedStatus = useAppSelector((state) =>
     id ? api.endpoints.getOrder.select(id)(state).data?.status : undefined,
   );
+  const lastPollFailed = useAppSelector((state) =>
+    id ? api.endpoints.getOrder.select(id)(state).isError : false,
+  );
 
   const result = useGetOrderQuery(id ?? skipToken, {
-    // Poll until completed, then stop. RTK Query also clears the timer when the page closes.
-    pollingInterval: cachedStatus === "completed" ? 0 : POLL_EVERY_MS,
+    // Poll until completed, then stop. Also stop after an error: a 404 never fixes itself
+    // (polling it made the page flicker every 2 s), and "Try again" restarts a 500.
+    // RTK Query also clears the timer when the page closes.
+    pollingInterval: cachedStatus === "completed" || lastPollFailed ? 0 : POLL_EVERY_MS,
   });
   const state = toRequestState(result);
-
-  if (state.status === "error" && state.error.status === 404) {
-    return <NotFound title="Order not found" message="We couldn't find that order." />;
-  }
 
   return (
     <div className="page">
@@ -43,6 +44,7 @@ export function OrderConfirmationPage() {
         state={state}
         loadingLabel="Loading your order…"
         errorTitle="We couldn't load your order"
+        notFound={{ title: "Order not found", message: "We couldn't find that order." }}
         onRetry={() => void result.refetch()}
       >
         {(order) => {

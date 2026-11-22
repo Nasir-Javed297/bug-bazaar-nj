@@ -1,5 +1,6 @@
 // The ONLY loading, error and empty views in the app, so every page looks and behaves the same.
 import type { ReactNode } from "react";
+import { Link, useLocation } from "react-router-dom";
 import type { ClientError } from "../api/client";
 import { describeError } from "../api/errorMessages";
 
@@ -26,8 +27,36 @@ type ErrorStateProps = {
 };
 
 export function ErrorState({ title, error, onRetry }: ErrorStateProps) {
-  // Friendly text only: error.message is for developers and is never shown.
-  const { message, retryable } = describeError(error);
+  // One mapping for every error (src/api/errorMessages.ts). error.message is never shown.
+  const userError = describeError(error);
+  const location = useLocation();
+
+  // What the user can do next depends on the KIND of error.
+  let action: ReactNode = null;
+  if (userError.kind === "retryable") {
+    action = (
+      <button type="button" className="button" onClick={onRetry}>
+        Try again
+      </button>
+    );
+  } else if (userError.kind === "unauthorized") {
+    // The base query has already signed the user out; come back here after logging in.
+    action = (
+      <Link
+        to="/login"
+        state={{ from: `${location.pathname}${location.search}` }}
+        className="button"
+      >
+        Log in
+      </Link>
+    );
+  } else if (userError.kind === "notFound") {
+    action = (
+      <Link to="/" className="button">
+        Back to the shop
+      </Link>
+    );
+  }
 
   return (
     // role="alert": screen readers announce errors immediately.
@@ -36,12 +65,8 @@ export function ErrorState({ title, error, onRetry }: ErrorStateProps) {
         ⚠️
       </span>
       <h2 className="state__title">{title}</h2>
-      <p className="state__message">{message}</p>
-      {retryable && (
-        <button type="button" className="button" onClick={onRetry}>
-          Try again
-        </button>
-      )}
+      <p className="state__message">{userError.message}</p>
+      {action}
     </div>
   );
 }

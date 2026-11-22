@@ -14,7 +14,6 @@ import { StockBadge } from "../components/StockBadge";
 import { useCancelProductRequestOnLeave } from "../hooks/useCancelProductRequestOnLeave";
 import { formatPrice } from "../utils/formatPrice";
 import { getFromPath } from "../utils/navigation";
-import { NotFound } from "./NotFound";
 
 export function ProductDetailsPage() {
   // The `:id` part of the URL. Typed `string | undefined`: the router can't promise it exists.
@@ -44,16 +43,6 @@ export function ProductDetailsPage() {
   // Note: every hook is called above this line. Hooks must run in the same order on every
   // render, so they can't come after an early `return`.
 
-  // A missing product isn't fixed by retrying, so a 404 gets the Not Found page instead.
-  if (state.status === "error" && state.error.status === 404) {
-    return (
-      <NotFound
-        title="Product not found"
-        message="This product doesn't exist or is no longer available."
-      />
-    );
-  }
-
   return (
     <div className="page">
       <Link to={backLink} className="back-link">
@@ -63,6 +52,10 @@ export function ProductDetailsPage() {
         state={state}
         loadingLabel="Loading product…"
         errorTitle="We couldn't load this product"
+        notFound={{
+          title: "Product not found",
+          message: "This product doesn't exist or is no longer available.",
+        }}
         onRetry={() => void result.refetch()}
       >
         {(product) => (

@@ -22,6 +22,13 @@ How I used AI (Claude Code) on this project: what I asked, what I kept, what I c
 - **How it was caught:** listing the loaded module URLs showed the app used `store.ts?t=1795365900081` (Vite keeps a hot-update timestamp on a file's URL for the whole dev-server session), while the console imported plain `store.ts`, a separate module instance with its own empty store.
 - **Lesson:** a test tool can create the very bug it seems to find. Check which instance you're looking at before blaming the app. The app itself always had one store.
 
+### 4. Polling that never stopped on a missing order (D3-2, caught in D3-4)
+
+- **What happened:** the generated order confirmation page polled every 2 s "until the order is completed". Nobody considered the error case: a missing order (404) is never completed, so it polled forever and flickered to "Loading…" every 2 seconds.
+- **How it was caught:** while checking every error type for D3-4, one sample showed "Loading your order…" instead of "Order not found". Sampling the screen every 400 ms showed the flicker, and the network list showed repeated 404 requests.
+- **Fix:** stop polling when the last request failed. Re-tested with a missing order (1 request, stable screen) and with a real order (still reaches "Confirmed").
+- **Lesson:** for every "repeat until X" loop, ask what happens if X never comes.
+
 ## AI uses (prompt, what I kept, what I changed)
 
 _To be completed in D5-7._

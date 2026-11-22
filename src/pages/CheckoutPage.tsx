@@ -8,33 +8,35 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useCreateOrderMutation } from "../api/apiSlice";
-import type { ClientError } from "../api/client";
+import { describeError, type UserError } from "../api/errorMessages";
 import { toClientError } from "../api/requestState";
 import { OrderSummary } from "../components/OrderSummary";
 import { EmptyState } from "../components/StatusViews";
-import { cartCleared, selectCartItems, stockUpdated, type CartItem } from "../store/cartSlice";
+import { cartCleared, selectCartItems, stockUpdated } from "../store/cartSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { formatPrice } from "../utils/formatPrice";
 
 /** A fresh, random idempotency key. */
 const newIdempotencyKey = () => crypto.randomUUID();
 
-/** Turns a checkout error into a message for the shopper. Raw server messages are never shown. */
-function describeCheckoutError(error: ClientError, items: CartItem[]): string {
-  if (error.status === 409) {
-    const productId = error.details?.productId;
-    const name =
-      error.details?.productName ??
-      items.find((item) => item.productId === productId)?.name ??
-      "One of the items";
-    const available = Number(error.details?.available ?? 0);
-    return available > 0
-      ? `Sorry, only ${available} of "${name}" ${available === 1 ? "is" : "are"} left. We've updated your cart: please check it and place your order again.`
-      : `Sorry, "${name}" just sold out. We've removed it from your cart: please check it and place your order again.`;
+/**
+ * The checkout's wording on top of the shared mapping (describeError): every error kind is
+ * decided in ONE place; checkout only adds what to do next in this flow.
+ */
+function checkoutMessage(userError: UserError): string {
+  switch (userError.kind) {
+    case "outOfStock":
+      return userError.available > 0
+        ? `${userError.message} We've updated your cart: please check it and place your order again.`
+        : `${userError.message} We've removed it from your cart: please check it and place your order again.`;
+    case "validation":
+      return "Something in your cart isn't valid any more. Please review it.";
+    case "retryable":
+      return `${userError.message} You won't be charged twice.`;
+    case "unauthorized":
+    case "notFound":
+      return userError.message;
   }
-  if (error.status === 401) return "Your session has expired. Please log in again to check out.";
-  if (error.status === 400) return "Something in your cart isn't valid any more. Please review it.";
-  return "We couldn't place your order. Please try again: you won't be charged twice.";
 }
 
 export function CheckoutPage() {
@@ -58,21 +60,18 @@ export function CheckoutPage() {
       navigate(`/orders/${order.id}`, { replace: true });
       dispatch(cartCleared());
     } catch (err: unknown) {
-      const error = toClientError(err);
-      setErrorMessage(describeCheckoutError(error, items));
+      const userError = describeError(toClientError(err));
+      setErrorMessage(checkoutMessage(userError));
 
-      if (error.status === 409 && error.details?.productId) {
+      if (userError.kind === "outOfStock" && userError.productId) {
         // Apply the real stock to the cart. The cart has changed, so it's a different order
         // now: give the next attempt a NEW key.
-        dispatch(
-          stockUpdated({
-            productId: error.details.productId,
-            stock: Number(error.details.available ?? 0),
-          }),
-        );
+        dispatch(stockUpdated({ productId: userError.productId, stock: userError.available }));
         setIdempotencyKey(newIdempotencyKey());
       }
-      // Any other error (500, network...): keep the SAME key, so retrying is safe.
+      // 401: the base query has already signed the user out, and RequireAuth sends them to
+      // log in, then back here with the cart intact.
+      // Anything else (500, network...): keep the SAME key, so retrying is safe.
     }
   };
 
