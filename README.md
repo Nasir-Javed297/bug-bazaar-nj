@@ -1,4 +1,8 @@
-# Bug Bounty Board: Final Boss
+# The Bug Bazaar
+
+> A small store for developer gear (rubber ducks, keyboards, coffee, stickers). Grown from the Week 1 Bug Bounty Board. Full setup instructions arrive in task D1-1.
+
+## Week 1 history: Bug Bounty Board
 
 You have 30 minutes. Build a small React app that lists bugs, searches them, adds new ones, and opens a details page.
 
