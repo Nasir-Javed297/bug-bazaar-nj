@@ -313,3 +313,27 @@ With `noUncheckedIndexedAccess`, reading `array[0]` gives `T | undefined`, becau
 - **`any` vs `unknown`?** `any` turns checking off. `unknown` forces you to check the type first. We ban `any` with ESLint.
 - **When do you use `as`?** Rarely, only when I know more than the compiler (our own stored data). For outside data I use type guards.
 - **Do types exist at runtime?** No. They're removed at build time, which is why outside data (network, storage, URL) still needs runtime checks.
+
+---
+
+## 16. `Partial<T>`: "any subset of the fields"
+
+```ts
+// src/hooks/useProductFilters.ts
+updateFilters(changes: Partial<ProductFilters>)
+
+updateFilters({ sort: "price-asc" });            // ✅ only one field
+updateFilters({ category: "ducks", page: 2 });   // ✅ any combination
+updateFilters({ colour: "red" });                // ❌ not a ProductFilters field
+```
+
+`Partial<ProductFilters>` is `ProductFilters` with every field made optional (`?`). Perfect for "change some settings".
+
+## 17. Default parameter values
+
+```ts
+// src/pages/NotFound.tsx
+export function NotFound({ title = "Page not found", message = "..." }: NotFoundProps);
+```
+
+Plain JavaScript (not TypeScript): if `title` isn't passed, it's `"Page not found"`. The type marks it optional with `title?: string`.

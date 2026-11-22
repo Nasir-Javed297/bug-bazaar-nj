@@ -1,6 +1,6 @@
 // One product in the grid: image, name, price, rating and stock.
 // Presentational component: it only receives data through props and displays it.
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import type { Product } from "../types/api";
 import { formatPrice } from "../utils/formatPrice";
 import { StockBadge } from "./StockBadge";
@@ -10,6 +10,10 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ product }: ProductCardProps) {
+  // The current list URL (with its filters), so the details page can link back to the same view.
+  const location = useLocation();
+  const from = `${location.pathname}${location.search}`;
+
   return (
     <article className="product-card">
       {/* alt="": the image is decorative, the name below already says what it is. */}
@@ -25,7 +29,7 @@ export function ProductCard({ product }: ProductCardProps) {
         <h2 className="product-card__name">
           {/* The ONLY focusable element in the card. CSS stretches its click area over
               the whole card, so Tab moves product -> product and Enter opens it. */}
-          <Link to={`/products/${product.id}`} className="product-card__link">
+          <Link to={`/products/${product.id}`} state={{ from }} className="product-card__link">
             {product.name}
           </Link>
         </h2>

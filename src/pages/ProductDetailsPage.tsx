@@ -2,16 +2,36 @@
 // (Shared UI states arrive in D2-3, request cleanup and Back to Top in D2-4.)
 import type { ReactNode } from "react";
 import { skipToken } from "@reduxjs/toolkit/query";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { useGetProductQuery } from "../api/apiSlice";
 import { toRequestState } from "../api/requestState";
 import { StockBadge } from "../components/StockBadge";
 import { formatPrice } from "../utils/formatPrice";
 import { NotFound } from "./NotFound";
 
+/**
+ * Where "Back to products" should go. ProductCard passes `{ from: "/?category=ducks..." }`
+ * as navigation state, so the user returns to the same filtered list. Navigation state can be
+ * anything (or missing, e.g. when the page was opened from a shared link), so we check it.
+ */
+function getBackLink(state: unknown): string {
+  if (
+    typeof state === "object" &&
+    state !== null &&
+    "from" in state &&
+    typeof state.from === "string" &&
+    state.from.startsWith("/")
+  ) {
+    return state.from;
+  }
+  return "/";
+}
+
 export function ProductDetailsPage() {
   // The `:id` part of the URL. Typed `string | undefined`: the router can't promise it exists.
   const { id } = useParams<{ id: string }>();
+  const location = useLocation();
+  const backLink = getBackLink(location.state);
 
   // skipToken = "don't fetch". Avoids requesting /api/products/undefined.
   const result = useGetProductQuery(id ?? skipToken);
@@ -70,7 +90,7 @@ export function ProductDetailsPage() {
 
   return (
     <div className="page">
-      <Link to="/" className="back-link">
+      <Link to={backLink} className="back-link">
         ← Back to products
       </Link>
       {content}
