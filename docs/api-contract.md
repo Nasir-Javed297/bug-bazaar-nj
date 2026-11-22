@@ -133,3 +133,17 @@ Open **🛠 Dev tools** (bottom-right corner of the app) for the switches. Switc
 | `GET /api/products`     | order  | Dev tools → **Out-of-order search**: shorter searches reply later (race-condition test, D2-6)                                    |
 | any                     | none   | Dev tools → **Network down**: no response at all (the app shows "check your connection")                                         |
 | any                     | slow   | Dev tools → **Slow network** (+2-4 s, to see loading states)                                                                     |
+
+## Live stock (WebSocket, extension)
+
+`ws(s)://<host>/ws/stock` (configurable with `VITE_STOCK_FEED_URL`). JSON messages:
+
+```json
+// browser -> server: replace the list of products to receive updates for
+{ "type": "subscribe", "productIds": ["p-0042", "p-0043"] }
+// server -> browser: a product's new stock level
+{ "type": "stock", "productId": "p-0042", "stock": 7 }
+```
+
+- The mock server (`src/mocks/stockFeed.ts`) sends one update every 1–2 s for a random subscribed product (another shopper buying 1–3, or a restock), and changes the stock in the mock database, so the REST API agrees.
+- Dev tools → **Live stock: drop connections**: the server closes every connection (code 1011) about 0.5 s after it opens, to test recovery.

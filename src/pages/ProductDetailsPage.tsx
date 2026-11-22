@@ -8,11 +8,13 @@ import { useGetProductQuery } from "../api/apiSlice";
 import { toRequestState } from "../api/requestState";
 import { AddToCartButton } from "../components/AddToCartButton";
 import { BackToTopButton } from "../components/BackToTopButton";
+import { LiveStockStatus } from "../components/LiveStockStatus";
 import { QueryStateView } from "../components/QueryStateView";
 import { RelatedProducts } from "../components/RelatedProducts";
 import { StockBadge } from "../components/StockBadge";
 import { useCancelProductRequestOnLeave } from "../hooks/useCancelProductRequestOnLeave";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useLiveStock } from "../hooks/useLiveStock";
 import { formatPrice } from "../utils/formatPrice";
 import { getFromPath } from "../utils/navigation";
 
@@ -33,6 +35,11 @@ export function ProductDetailsPage() {
   const state = toRequestState(result);
   const isMissing = state.status === "error" && state.error.status === 404;
   useDocumentTitle(result.currentData?.name ?? (isMissing ? "Product not found" : "Product"));
+
+  // Task D4-4: this product's stock updates live while the page is open. Subscribe only once the
+  // product is loaded: an update arriving before the data is cached would be lost, and the older
+  // REST response would then stay on screen (a race found by a test).
+  const liveStatus = useLiveStock(result.currentData ? [result.currentData.id] : []);
 
   // Task D2-4: leaving this product (switching or closing the page) cancels its request.
   useCancelProductRequestOnLeave(id);
@@ -80,6 +87,7 @@ export function ProductDetailsPage() {
                   ★ {product.rating.toFixed(1)} / 5
                 </p>
                 <StockBadge stock={product.stock} />
+                <LiveStockStatus status={liveStatus} />
                 {/* key: a new product gets a fresh button (its "Added" message resets). */}
                 <AddToCartButton key={product.id} product={product} />
               </div>

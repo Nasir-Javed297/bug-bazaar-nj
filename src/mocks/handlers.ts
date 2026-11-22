@@ -25,6 +25,7 @@ import {
   queryProducts,
 } from "./db";
 import { getScenarios } from "./scenarios";
+import { stockFeedHandler } from "./stockFeed";
 
 const url = (path: string) => `${config.apiBaseUrl}${path}`;
 
@@ -85,6 +86,9 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 // ---------- Handlers ----------
 
 export const handlers = [
+  // WebSocket: live stock updates (task D4-4), see stockFeed.ts
+  stockFeedHandler,
+
   // GET /api/products?search=&category=&sort=&page=&inStock=&pageSize=
   http.get(url("/products"), async ({ request }) => {
     const failure = await simulateServer();

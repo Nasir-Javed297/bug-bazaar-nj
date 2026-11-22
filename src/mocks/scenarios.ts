@@ -25,6 +25,8 @@ export type MockScenarios = {
   loseOrderResponse: boolean;
   /** Requests fail with no response at all, like being offline (status 0 in the app). */
   networkDown: boolean;
+  /** The live stock WebSocket server closes every connection shortly after it opens (D4-4). */
+  dropStockFeed: boolean;
 };
 
 export const DEFAULT_SCENARIOS: MockScenarios = {
@@ -36,6 +38,7 @@ export const DEFAULT_SCENARIOS: MockScenarios = {
   outOfOrderSearch: false,
   loseOrderResponse: false,
   networkDown: false,
+  dropStockFeed: false,
 };
 
 export const SCENARIO_LABELS: Record<keyof MockScenarios, string> = {
@@ -47,6 +50,7 @@ export const SCENARIO_LABELS: Record<keyof MockScenarios, string> = {
   outOfOrderSearch: "Out-of-order search (short queries answer last)",
   loseOrderResponse: "Checkout: order saved, reply lost (500)",
   networkDown: "Network down (no response at all)",
+  dropStockFeed: "Live stock: drop connections",
 };
 
 export const SCENARIOS_STORAGE_KEY = "bug-bazaar:mock-scenarios";

@@ -24,6 +24,17 @@ export function getProduct(id: string): Product | undefined {
   return productsById.get(id);
 }
 
+/**
+ * Changes a product's stock by `delta` (never below 0) and returns the new stock.
+ * Used by the live stock feed (task D4-4) to simulate other shoppers and restocks.
+ */
+export function changeStock(id: string, delta: number): number | undefined {
+  const product = productsById.get(id);
+  if (!product) return undefined;
+  product.stock = Math.max(0, product.stock + delta);
+  return product.stock;
+}
+
 /** Search, filter, sort and paginate. Mirrors what a real server would do in SQL. */
 export function queryProducts(query: ProductsQuery): ProductsResponse {
   const search = query.search?.trim().toLowerCase() ?? "";

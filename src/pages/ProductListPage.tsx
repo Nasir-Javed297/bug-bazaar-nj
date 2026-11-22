@@ -6,12 +6,14 @@ import type { ClientError } from "../api/client";
 import { toRequestState } from "../api/requestState";
 import { BackToTopButton } from "../components/BackToTopButton";
 import { FiltersBar } from "../components/FiltersBar";
+import { LiveStockStatus } from "../components/LiveStockStatus";
 import { Pagination } from "../components/Pagination";
 import { ProductGrid } from "../components/ProductGrid";
 import { QueryStateView } from "../components/QueryStateView";
 import { EmptyState } from "../components/StatusViews";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
+import { useLiveStock } from "../hooks/useLiveStock";
 import { useProductFilters } from "../hooks/useProductFilters";
 import { MAX_PAGE_SIZE, type ProductsResponse } from "../types/api";
 import type { RequestState } from "../types/request";
@@ -49,6 +51,9 @@ export function ProductListPage() {
   const state: RequestState<ProductsResponse, ClientError> = isTyping
     ? { status: "loading" }
     : toRequestState(result);
+
+  // Task D4-4: live stock for the products on screen (only loaded ones: see ProductDetailsPage).
+  const liveStatus = useLiveStock(result.currentData?.items.map((product) => product.id) ?? []);
 
   const goToPage = (page: number) => {
     updateFilters({ page });
@@ -102,9 +107,12 @@ export function ProductListPage() {
         {({ items, total }) => (
           <>
             {/* role="status": screen readers announce the new count when filters change. */}
-            <p className="result-count" role="status">
-              {total} {total === 1 ? "product" : "products"}
-            </p>
+            <div className="result-bar">
+              <p className="result-count" role="status">
+                {total} {total === 1 ? "product" : "products"}
+              </p>
+              <LiveStockStatus status={liveStatus} />
+            </div>
             <ProductGrid products={items} />
             <Pagination
               page={filters.page}

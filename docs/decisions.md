@@ -474,3 +474,28 @@ Stale data is fine when **being slightly out of date can't cause a wrong outcome
 **Fixed along the way:** a 0 px row-height infinite loop in the virtualizer, found by a new test.
 
 Full table with every optimization and its justification: [`docs/performance.md`](performance.md#every-optimization-justified).
+
+## D4-4: WebSockets
+
+**Used:** a **WebSocket** feed (`/ws/stock`), mocked with MSW's WebSocket support. The page **subscribes** to the products it shows, and the server pushes `{ type: "stock", productId, stock }` for those only.
+
+- **Client** (`src/api/stockFeed.ts`, in the data layer): connects, sends the subscription once open (and again when the products on screen change), validates every message with a type guard.
+- **Recovers after a disconnect:** reconnects with **exponential backoff + jitter** (≈1, 2, 4, 8… s, capped at 30 s, each randomized to 50–100%), retries immediately on the browser's `online` event. The backoff only resets after a connection has stayed open for 5 s.
+- **Stops when the page closes:** `useLiveStock` opens the feed in an effect, and its cleanup calls `close()`. That sets `closedByUs` **before** closing (so the close handler doesn't reconnect), cancels any scheduled retry and removes the `online` listener. The server clears its own timer on close too.
+- **Applying updates without refetching** (`src/api/liveStock.ts`): `updateQueryData` edits the cached product, and every cached list containing it (found through the per-product tags from D3-5). The cart lowers a quantity that's now above the stock. Memoized cards (D4-3) mean only the changed card re-renders.
+- **Status** (`LiveStockStatus`): "Live stock" / "Live stock paused, reconnecting…", in a `role="status"` region.
+
+**Verified in the browser:** the details page's stock changed 11 → 23 → 22 → 21 → 35 → 32 without a reload (server: 32). The list page had 5 of 24 cards change in 9 s. With **drop connections** on, retries came 1.4 → 2.0 → 3.7 → 7.0 → 14.8 s apart. Switched off + `online` → 1 immediate reconnect, updates resumed. Leaving the page while live → closed with code 1000, 0 attempts or messages afterwards. Leaving while waiting to reconnect → 0 attempts in the next 10 s. **Tests:** `src/test/liveStock.test.tsx` (update shown, recovery, closed and not reconnected after leaving).
+
+**Two bugs found by testing (both fixed):**
+
+1. **Backoff never grew.** It reset on `open`, so a server that accepts and immediately drops connections got a retry every ~1 s forever. It now resets only after 5 s of stable connection.
+2. **Race: an update before the data.** The details page subscribed before its product had loaded, so an early update had nothing in the cache to update and was lost, and the older REST response then stayed on screen. Pages now subscribe only to products that are already loaded.
+
+**Considered:**
+
+- _Polling_ (e.g. RTK Query `pollingInterval`, used for order status in D3-2). Simplest, works everywhere, but every page re-downloads its products every N seconds even when nothing changed, and is up to N seconds late. Fine for one order. Wasteful for a grid of products.
+- _Server-Sent Events._ Simpler than WebSockets (plain HTTP, automatic reconnect built into `EventSource`), and enough for one-way updates. I'd pick SSE if the server could push **all** stock changes or used a fixed topic. WebSockets let the browser tell the server **which** products it's showing, on the same connection.
+- _Keeping the feed open on every page._ It's only useful where stock is shown, so it lives on the product list and details pages, and closes when you leave them.
+
+**Note:** during testing, one long-lived dev tab (after many hot reloads plus a test-only `WebSocket` wrapper) stopped routing `/api` requests through the mock. It didn't happen again after a fresh load, and all 37 tests pass. Recorded as not reproduced.

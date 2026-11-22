@@ -106,3 +106,34 @@ export type ApiError = {
     details?: Record<string, string>;
   };
 };
+
+// ---------- Live stock feed (WebSocket, task D4-4) ----------
+
+/** Browser -> server: "send me stock changes for these products". */
+export type StockSubscribeMessage = {
+  type: "subscribe";
+  productIds: string[];
+};
+
+/** Server -> browser: one product's new stock level. */
+export type StockUpdateMessage = {
+  type: "stock";
+  productId: string;
+  stock: number;
+};
+
+/** WebSocket messages come from outside the app, so they're checked before use. */
+export function isStockUpdateMessage(value: unknown): value is StockUpdateMessage {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "type" in value &&
+    value.type === "stock" &&
+    "productId" in value &&
+    typeof value.productId === "string" &&
+    "stock" in value &&
+    typeof value.stock === "number" &&
+    Number.isInteger(value.stock) &&
+    value.stock >= 0
+  );
+}

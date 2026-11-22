@@ -36,6 +36,13 @@ How I used AI (Claude Code) on this project: what I asked, what I kept, what I c
 - **Fix:** apply the wrapper after `server.listen()`, so it's the outermost layer. All 30 tests pass.
 - **Lesson:** when wrapping functions, order matters: the last wrapper applied is the first one called.
 
+### 6. Reconnect backoff that never backed off (D4-4)
+
+- **What happened:** the generated WebSocket client reset its retry counter as soon as a connection opened. A server that accepts connections and drops them straight away (overloaded or crash-looping) would get a reconnect every ~1 s from every browser, which is exactly what backoff exists to prevent.
+- **How it was caught:** testing recovery with the Dev panel's _drop connections_ switch and logging when each attempt started: the gaps were 1.5, 1.1, 1.4, 1.4, 1.0 s instead of growing.
+- **Fix:** reset the counter only after a connection has stayed open for 5 s. Re-tested: 1.4 → 2.0 → 3.7 → 7.0 → 14.8 s.
+- **Lesson:** test the unhappy path with numbers, not just "it reconnected". Both versions "reconnected".
+
 ## AI uses (prompt, what I kept, what I changed)
 
 _To be completed in D5-7._

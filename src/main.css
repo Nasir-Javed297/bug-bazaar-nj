@@ -846,3 +846,45 @@ img {
   gap: 20px;
   padding-bottom: 20px; /* the gap between rows (part of each measured row height) */
 }
+
+/* ---------- Live stock status (D4-4) ---------- */
+.result-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 16px;
+}
+
+.result-bar .result-count {
+  margin: 0;
+}
+
+.live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-muted);
+}
+
+.live-status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #94a3b8;
+}
+
+.live-status--live .live-status__dot {
+  background: #16a34a;
+}
+
+.live-status--reconnecting {
+  color: var(--color-warning-text);
+}
+
+.live-status--reconnecting .live-status__dot {
+  background: #d97706;
+}

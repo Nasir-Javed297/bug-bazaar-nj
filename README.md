@@ -25,6 +25,7 @@ A `.env` file is **optional**. Every setting has a default. To change one, copy 
 
 The app talks to a mock backend built with [MSW](https://mswjs.io/), which intercepts `fetch` calls inside the browser. It has 5,000 seeded products and implements every endpoint in [`docs/api-contract.md`](docs/api-contract.md), including all the error codes.
 
+- **Live stock:** the product pages open a WebSocket (`/ws/stock`, also mocked by MSW) and stock badges update without reloading. Dev tools → _Live stock: drop connections_ tests reconnection.
 - **Demo account:** `demo@bugbazaar.dev` / `password123`
 - **🛠 Dev tools** (bottom-right corner): switches that force errors on purpose (500, 401, 409, slow network), plus a button that resets orders and stock. The contract doc lists how to trigger [every error](docs/api-contract.md#how-to-trigger-each-error).
 - Every UI state (loading, error + retry, empty, 404) can be triggered on purpose: see the table in [`docs/decisions.md`](docs/decisions.md#d2-3-ui-states).
