@@ -570,3 +570,14 @@ Also named: render prop (`QueryStateView`), network facade enforced by ESLint, i
 - **What I wouldn't hand to AI:** deciding work is finished and putting my name on it (merging, review comments, self-assessment).
 
 **Why these three uses:** they cover planning, learning and reviewing, not only code generation, and each one has a concrete change I made and can explain.
+
+## D5-8: Reflection
+
+**Written:** [`docs/reflection.md`](reflection.md): my own rating out of 10 for 12 topics (React 8; Redux/RTK Query, routing, API errors and testing 7; TypeScript, auth, CI, performance and accessibility 6; WebSockets and system design 5), each with what I can do now and what's still shaky.
+
+**Two gaps, each with specific, dated next steps and a "done when":**
+
+1. **WebSocket reconnect and backoff:** trace `reconnectDelay()` by hand, add a unit test for it, and re-create the original backoff bug with the Dev panel to see why the 5-second rule exists.
+2. **System design:** redraw the order queue from memory, design a "back in stock" email feature the same way, read one real source per term, and explain the design to my partner.
+
+**Why the ratings are mine:** the scores were given by me, not generated. The point of a reflection is to show real gaps, so they're honest rather than flattering.

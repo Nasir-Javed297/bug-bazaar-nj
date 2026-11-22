@@ -114,6 +114,7 @@ Every commit starts with its task ID, for example `D3-2: add cart page`.
 - [`docs/glossary.md`](docs/glossary.md): six system-design terms in plain words, each with an example from this store
 - [`docs/reviews/architecture-review.md`](docs/reviews/architecture-review.md): my review of my partner's architecture doc (D5-5)
 - [`docs/reviews/code-review.md`](docs/reviews/code-review.md): my review of my partner's PR (D5-6)
+- [`docs/reflection.md`](docs/reflection.md): my ratings per topic, two gaps and the next step for each
 - [`docs/decisions.md`](docs/decisions.md): what was chosen for each task, the alternatives, and why
 - [`docs/api-contract.md`](docs/api-contract.md): endpoints, types, status codes and how to trigger each error
 - [`docs/auth.md`](docs/auth.md): login flow, where the token is stored and the trade-off, 401 handling
