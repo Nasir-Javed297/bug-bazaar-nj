@@ -376,8 +376,64 @@ img {
   margin-top: 32px;
 }
 
-.empty {
+/* ---------- Shared UI states: loading, error, empty (src/components/StatusViews.tsx) ---------- */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   padding: 48px 16px;
   text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.state--error {
+  border-color: #fca5a5;
+  background: #fffafa;
+}
+
+.state__icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.state__title {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.state__message {
+  margin: 0 0 8px;
   color: var(--color-muted);
+  max-width: 40ch;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 4px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Respect users who ask their OS for less motion: slow pulse instead of spinning. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.4;
+  }
 }

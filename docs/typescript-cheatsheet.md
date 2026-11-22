@@ -337,3 +337,23 @@ export function NotFound({ title = "Page not found", message = "..." }: NotFound
 ```
 
 Plain JavaScript (not TypeScript): if `title` isn't passed, it's `"Page not found"`. The type marks it optional with `title?: string`.
+
+## 18. Generic components and render props
+
+```tsx
+// src/components/QueryStateView.tsx
+type QueryStateViewProps<T> = {
+  state: RequestState<T, ClientError>;
+  children: (data: T) => ReactNode; // a FUNCTION as children = "render prop"
+};
+export function QueryStateView<T>({ state, children }: QueryStateViewProps<T>) { ... }
+
+// src/pages/ProductDetailsPage.tsx
+<QueryStateView state={state} ...>
+  {(product) => <h1>{product.name}</h1>}   {/* product is typed as Product automatically */}
+</QueryStateView>
+```
+
+- `<T>` on the component: TypeScript works out `T` from the `state` you pass (here `T = Product`).
+- The render prop is only called when the data exists, so the page can't use `product` while loading.
+- `ReactNode` = "anything React can render" (JSX, text, `null`...).

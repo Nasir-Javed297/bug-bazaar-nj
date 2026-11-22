@@ -114,3 +114,30 @@ Before, the app had three separate `useState` calls (`loading`, `error`, `bugs`)
 - _Filters in Redux._ Survives navigation but not refresh, and isn't shareable. It would also be a second copy of what the URL already says.
 - _Filtering the 5,000 products in the browser._ Fast enough, but the contract defines server-side `search/category/sort/page`, and that's how a real catalogue scales.
 - _`navigate(-1)` for "Back to products"._ Breaks when the page was opened from a shared link (it would leave the site). Router state with a `/` fallback handles both cases.
+
+## D2-3: UI states
+
+**Used:** one set of state views, so consistency doesn't depend on remembering to copy markup.
+
+- **`LoadingState`, `ErrorState`, `EmptyState`** (`src/components/StatusViews.tsx`) are the only loading/error/empty markup in the app. Loading uses `role="status"`, and errors use `role="alert"` so screen readers announce them immediately. The spinner switches to a gentle pulse when the OS asks for reduced motion.
+- **`QueryStateView`** (`src/components/QueryStateView.tsx`) takes a `RequestState` and picks the view. Pages only pass labels, an optional `isEmpty` check, and a **render prop** (`children: (data) => ReactNode`) that's called only when data exists, already typed.
+- **`describeError`** (`src/api/errorMessages.ts`) turns a `ClientError` into friendly text and decides whether retrying makes sense. Raw messages from the server never reach the screen.
+- **Retry** calls RTK Query's `refetch()`. While it runs, the adapter reports `loading`, so the user sees the same loading view, then success or the error again.
+- **404 on the details page** shows the Not Found page instead of an error, because retrying can't make a missing product appear.
+
+**How to trigger each state** (🛠 Dev tools, bottom-right):
+
+| State   | Product list                                      | Product details                   |
+| ------- | ------------------------------------------------- | --------------------------------- |
+| Loading | **Slow network** (+2-4 s)                         | **Slow network**                  |
+| Error   | **Product list fails (500)** or **Server outage** | **Server outage**                 |
+| Retry   | Turn the switch off, click **Try again**          | Same                              |
+| Empty   | Search for `zzzz`, or open `/?page=999`           | (n/a: a missing product is a 404) |
+| 404     | (n/a)                                             | Open `/products/nope`             |
+| Success | All switches off                                  | All switches off                  |
+
+**Considered:**
+
+- _A `switch` in every page._ That's what the pages had before. It works, but each page drifted (different text, roles and markup), which is exactly what "consistent" rules out.
+- _React Suspense + error boundaries for data loading._ Elegant, but RTK Query's hooks don't suspend by default, and an error boundary is meant for unexpected crashes (D4-7), not expected API errors with a retry.
+- _Skeleton cards instead of a spinner for the list._ Nicer perceived performance, but a different look per page. Kept one loading style for consistency.
