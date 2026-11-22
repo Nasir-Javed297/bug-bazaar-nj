@@ -372,3 +372,20 @@ export function useLocalStorage<T>(
 - `<T>` is inferred from what you pass: `useLocalStorage(KEY, DEFAULT_SCENARIOS, isMockScenarios)` gives `T = MockScenarios`.
 - `[T, (value: T) => void]` is a **tuple type**: an array with a fixed length and a type per position. That's why `const [scenarios, setScenarios] = ...` is typed correctly.
 - Passing a type guard (`value is T`) lets generic code turn `unknown` into `T` safely.
+
+## 20. Redux Toolkit types
+
+```ts
+// src/store/cartSlice.ts
+itemAdded(state, action: PayloadAction<{ product: Product; quantity?: number }>) { ... }
+//                       ^ "an action whose payload has this shape"
+
+// src/store/store.ts
+export type RootState = ReturnType<typeof store.getState>; // the type of the whole state
+export type AppDispatch = typeof store.dispatch;
+
+// src/store/hooks.ts: typed versions of useSelector / useDispatch
+export const useAppSelector = useSelector.withTypes<RootState>();
+```
+
+`Pick<Product, "name" | "price"> & { quantity: number }`: `&` (an **intersection**) means "all fields of both": a few fields picked from `Product` plus our own.

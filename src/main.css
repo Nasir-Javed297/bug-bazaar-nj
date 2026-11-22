@@ -472,3 +472,48 @@ img {
 #main-content:focus {
   outline: none;
 }
+
+/* ---------- Header navigation and cart badge (D3-1) ---------- */
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cart-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cart-badge {
+  min-width: 22px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+/* ---------- Add to cart ---------- */
+.add-to-cart {
+  margin-top: 8px;
+}
+
+.add-to-cart__status {
+  min-height: 1.5em; /* reserve space so the page doesn't jump when the message appears */
+  margin: 6px 0 0;
+  color: var(--color-success-text);
+  font-weight: 600;
+}

@@ -6,6 +6,7 @@ import { skipToken } from "@reduxjs/toolkit/query";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useGetProductQuery } from "../api/apiSlice";
 import { toRequestState } from "../api/requestState";
+import { AddToCartButton } from "../components/AddToCartButton";
 import { BackToTopButton } from "../components/BackToTopButton";
 import { QueryStateView } from "../components/QueryStateView";
 import { RelatedProducts } from "../components/RelatedProducts";
@@ -97,6 +98,8 @@ export function ProductDetailsPage() {
                   ★ {product.rating.toFixed(1)} / 5
                 </p>
                 <StockBadge stock={product.stock} />
+                {/* key: a new product gets a fresh button (its "Added" message resets). */}
+                <AddToCartButton key={product.id} product={product} />
               </div>
             </article>
             <RelatedProducts product={product} />

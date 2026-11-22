@@ -16,6 +16,12 @@ How I used AI (Claude Code) on this project: what I asked, what I kept, what I c
 - **How it was caught:** by testing the fix instead of trusting it, then narrowing down step by step: the store state was `rejected` (correct), the Provider held the same store, and dispatching a no-op action made the error appear. So only the notification was delayed. Root cause: RTK's auto-batching uses `requestAnimationFrame`, which is paused in hidden browser tabs (the test pane was hidden).
 - **Lesson:** a fix has to be verified by re-running the exact failing scenario. "It worked once" isn't proof.
 
+### 3. Debugging a second copy of the Redux store (D3-1)
+
+- **What happened:** while verifying the cart, the page showed 3 items but the store imported from the browser console was empty. The first explanation ("just a stale hot reload, a full reload fixes it") was wrong: the mismatch survived the reload.
+- **How it was caught:** listing the loaded module URLs showed the app used (Vite keeps a hot-update timestamp on a file's URL for the whole dev-server session), while the console imported plain , a separate module instance with its own empty store.
+- **Lesson:** a test tool can create the very bug it seems to find. Check which instance you're looking at before blaming the app. The app itself always had one store.
+
 ## AI uses (prompt, what I kept, what I changed)
 
 _To be completed in D5-7._

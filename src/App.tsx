@@ -1,20 +1,18 @@
-import { Link, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { DevPanel } from "./components/DevPanel";
+import { Header } from "./components/Header";
 import { config } from "./config";
 import { NotFound } from "./pages/NotFound";
 import { ProductDetailsPage } from "./pages/ProductDetailsPage";
 import { ProductListPage } from "./pages/ProductListPage";
 
-// App only lays out the page: header, routes and dev tools.
-// It holds no data: server data lives in the RTK Query cache (src/api).
+// App only lays out the page: header, routes and dev tools. It holds no data itself:
+// server data lives in the RTK Query cache, cart and session in the Redux store,
+// and filters in the URL.
 export default function App() {
   return (
     <>
-      <header className="site-header">
-        <Link to="/" className="site-title">
-          🦆 The Bug Bazaar
-        </Link>
-      </header>
+      <Header />
       {/* tabIndex={-1}: can receive focus from code (e.g. Back to top) without being a Tab stop. */}
       <main id="main-content" tabIndex={-1}>
         <Routes>

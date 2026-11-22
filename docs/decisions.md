@@ -206,3 +206,21 @@ Before, the app had three separate `useState` calls (`loading`, `error`, `bugs`)
 - _A "request id" check (`if (id !== latestId.current) return`) or an `ignore` flag in the effect cleanup._ The classic fix for hand-written `useEffect` fetching, and how I'd do it without RTK Query. Keying results by query solves the same problem, and also caches them.
 - _Aborting older search requests._ That saves bandwidth, but the late replies are still useful: they're cached, so deleting back from "duck" to "du" shows results instantly. Correctness doesn't depend on aborting. (For product details we do abort, D2-4, because the task asked for cleanup there.)
 - _Showing the previous results dimmed while searching._ Nicer for some users, but it would still show an old query's results and count, which this task rules out.
+
+## D3-1: Redux Toolkit
+
+**Used:** Redux Toolkit slices for the two kinds of shared **client** state:
+
+- **`cartSlice`**: `{ items: CartItem[] }`. Reducers `itemAdded`, `quantityChanged`, `itemRemoved`, `cartCleared` are the **only** ways the cart changes. Action names describe what happened, and the reducer decides how state changes. The stock limit (`clampQuantity`) lives in the reducer, so no component can bypass it.
+- **`authSlice`**: `{ session: { token, user } | null }`. One value instead of separate `token`/`user` fields, so "token without user" can't exist. Reducers `loggedIn` / `loggedOut` (wired up in D3-3).
+- **Derived values:** only the items are stored. `selectCartCount` and `selectCartTotal` are memoized selectors (`createSelector`) that compute count and total (in cents) from the items, so they can never drift out of sync. The header badge (`Header.tsx`) reads `selectCartCount`.
+- **Where state lives now:** server data → RTK Query cache (`state.api`). Cart and session → Redux slices. Filters → URL. Form inputs and toggles → component state.
+
+**"State only changes through defined updates," enforced:** Immer freezes the state in development, so pushing to `cart.items` from outside a reducer throws `TypeError: object is not extensible`, and assigning `item.quantity = 99` throws `Cannot assign to read only property` (in strict-mode code, which all ES modules are). Dispatching `quantityChanged` with 999 for a product with 11 in stock results in 11, because the reducer applies its rules.
+
+**Considered:**
+
+- _React Context + `useReducer`._ Fine for small apps, but every consumer re-renders on any change, and there are no devtools or memoized selectors. D3-1 also asks for Redux Toolkit specifically.
+- _Storing `count` and `total` in the slice._ Rejected: two sources of truth. Every reducer would have to remember to update them.
+- _`createEntityAdapter` (items normalised by id)._ Good for large collections. A cart has a handful of lines, and a plain array is simpler to read and explain.
+- _Storing only `productId` + `quantity` and looking up products from the API cache._ The cart page would then depend on cache entries that may have expired. A small snapshot (name, price, image, stock) keeps it self-contained, and the server re-checks stock and price at checkout.
