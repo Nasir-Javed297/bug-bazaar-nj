@@ -499,3 +499,11 @@ Full table with every optimization and its justification: [`docs/performance.md`
 - _Keeping the feed open on every page._ It's only useful where stock is shown, so it lives on the product list and details pages, and closes when you leave them.
 
 **Note:** during testing, one long-lived dev tab (after many hot reloads plus a test-only `WebSocket` wrapper) stopped routing `/api` requests through the mock. It didn't happen again after a fresh load, and all 37 tests pass. Recorded as not reproduced.
+
+## D5-1: Architecture
+
+**Written:** [`docs/ARCHITECTURE.md`](ARCHITECTURE.md): folder structure with the dependency rule (pages → components/hooks → api/store → types/utils), three data-flow diagrams (reading, placing an order, live stock), and a table of where each kind of state lives (server state in the RTK Query cache, shared client state in Redux slices, filters in the URL, local UI state in `useState`).
+
+**Defended choice:** filters live in the URL, so links, Back and reload all work, with validation because the URL is user input.
+
+**Checked against the code:** every file, setting and status code in the doc was checked against the source (this caught two mistakes in the first draft: a repeated idempotency key returns 201 with the same order, not 200, and only the Dev panel switches use `useLocalStorage`).
