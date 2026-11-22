@@ -537,3 +537,13 @@ Also named: render prop (`QueryStateView`), network facade enforced by ESLint, i
 **Written:** [`docs/glossary.md`](glossary.md): latency, idempotency, horizontal scaling, CDN, cache invalidation and eventual consistency. Each has a plain-words definition, an example from this store that points to the code (debounce and the slow-network switch; the checkout idempotency key; stateless bearer tokens; hashed build files and category images; RTK Query time limits, tags and `resetApiState`; order status polling and the 409 check), and a one-line version for the walkthrough.
 
 **Why examples from this app instead of textbook ones:** every example can be shown working in the browser or found in a file, so each term can be explained and demonstrated, not just recited.
+
+## D5-5: Architecture review of my partner's doc
+
+**Written:** [`docs/reviews/architecture-review.md`](reviews/architecture-review.md), a review of [mumairkhan115/Bug-Bazaar-Umair `docs/ARCHITECTURE.md`](https://github.com/mumairkhan115/Bug-Bazaar-Umair/blob/dev/docs/ARCHITECTURE.md) at commit `a2da2db`, using the headings of the template in their repo.
+
+- **Strengths:** (1) one pure `handleApi` contract shared by the mock server and tests, and React never imports it; (2) a short, honest state table and patterns whose examples match the code (presentational `ProductCard`, derived `selectCartCount`, persistence middleware).
+- **Risks:** (1) live stock is kept in `CatalogPage` local state while `ProductPage` reads a GET cache with no time limit, so a product can show stale stock with Add to cart enabled; (2) the documented dependency direction doesn't match the imports, and `domain/` mixes browser code with mock-only code.
+- **Recommendation:** give stock one home (live updates patch the cache, plus a time limit and 409 invalidation), and document it with a caching section and data-flow diagram.
+
+**How:** every claim was checked against their code by reading the imports and call sites; the app wasn't run, and the review says so.
