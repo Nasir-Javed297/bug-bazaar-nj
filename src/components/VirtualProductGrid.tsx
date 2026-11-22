@@ -46,6 +46,10 @@ export function VirtualProductGrid({ products }: VirtualProductGridProps) {
   const virtualizer = useWindowVirtualizer({
     count: rowCount,
     estimateSize: () => ESTIMATED_ROW_HEIGHT,
+    // Real row heights, measured as rows render. If a row measures 0 (no layout: inside a hidden
+    // container, or in tests), keep the estimate: with 0-height rows "everything fits on screen",
+    // the virtualizer renders more rows, measures 0 again... an infinite update loop (found by a test).
+    measureElement: (element) => element.getBoundingClientRect().height || ESTIMATED_ROW_HEIGHT,
     overscan: OVERSCAN_ROWS,
     scrollMargin: listTop,
   });

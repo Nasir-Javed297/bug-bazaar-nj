@@ -117,16 +117,6 @@ img {
   gap: 20px;
 }
 
-/* Performance fix #1 (task D4-2, docs/performance.md): the browser skips style, layout and paint
-   for cards that are off-screen until they scroll near the viewport. With "All products" that's
-   ~4,980 of 5,000 cards. The cards stay in the page, so find-in-page, keyboard focus and screen
-   readers still reach them. contain-intrinsic-size = the placeholder height used until a card is
-   laid out ("auto" = remember its real size afterwards), so the scrollbar stays sensible. */
-.product-grid > li {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 340px;
-}
-
 .product-card {
   position: relative; /* anchors the stretched link below */
   height: 100%;

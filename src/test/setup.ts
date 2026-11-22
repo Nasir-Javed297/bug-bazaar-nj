@@ -37,6 +37,12 @@ beforeAll(() => {
   // jsdom doesn't implement these browser APIs; the app calls them, so give them harmless stand-ins.
   window.scrollTo = vi.fn();
   window.matchMedia = vi.fn().mockReturnValue({ matches: false });
+  // Used by the virtualized grid to follow its width. jsdom has no layout, so sizes never change.
+  window.ResizeObserver ??= class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
 });
 
 afterEach(() => {

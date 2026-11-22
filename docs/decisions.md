@@ -462,3 +462,15 @@ Stale data is fine when **being slightly out of date can't cause a wrong outcome
 **Considered and measured, not kept:** computing the "back to list" URL once in the grid instead of `useLocation()` in each card. 3 samples each showed no difference (median 442 vs 457 ms).
 
 **Considered and rejected after checking:** `useDeferredValue` (it doesn't defer on first mount in React 18, and Redux store updates are synchronous). Pagination only, with no "All" view (sidesteps the problem, but D4-3 asks for a smooth 5,000-item list).
+
+## D4-3: Memoization / virtualization
+
+**Used:** virtualization (from D4-2) for the 5,000-item list, plus **`React.memo(ProductCard)`**, based on a measurement: while scrolling "All" for 3 s, cards re-rendered **10,455–12,126 times for nothing** (the virtualizer re-renders its parent every scroll frame). With memo: **0** unnecessary re-renders, and only the 171 new cards render. Scrolling: 60 fps, p95 18 ms, no frames over 50 ms.
+
+**Removed because it wasn't needed:** `content-visibility: auto` (D4-2 fix #1). After virtualization it only saved ~16 ms on a 96-card page (41 vs 57 ms median), and it made the scrollbar shift with estimated heights.
+
+**Skipped because measurement showed no gain:** computing the back-link URL once in the grid, `useDeferredValue`, and memoizing components that render rarely.
+
+**Fixed along the way:** a 0 px row-height infinite loop in the virtualizer, found by a new test.
+
+Full table with every optimization and its justification: [`docs/performance.md`](performance.md#every-optimization-justified).

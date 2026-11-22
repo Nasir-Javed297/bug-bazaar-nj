@@ -1,5 +1,6 @@
 // One product in the grid: image, name, price, rating and stock.
 // Presentational component: it only receives data through props and displays it.
+import { memo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import type { Product } from "../types/api";
 import { formatPrice } from "../utils/formatPrice";
@@ -9,7 +10,14 @@ type ProductCardProps = {
   product: Product;
 };
 
-export function ProductCard({ product }: ProductCardProps) {
+/**
+ * Wrapped in React.memo (task D4-3, docs/performance.md): skip re-rendering when the props are the
+ * same objects as last time. While the virtualized list scrolls, its parent re-renders every frame;
+ * without memo every visible card re-rendered ~60 times per frame for nothing. `product` comes from
+ * the RTK Query cache, so it's the same object until the data really changes. (A memoized component
+ * still re-renders when a context it reads changes, e.g. useLocation() on navigation. That's correct.)
+ */
+export const ProductCard = memo(function ProductCard({ product }: ProductCardProps) {
   // The current list URL (with its filters), so the details page can link back to the same view.
   const location = useLocation();
   const from = `${location.pathname}${location.search}`;
@@ -41,4 +49,4 @@ export function ProductCard({ product }: ProductCardProps) {
       </div>
     </article>
   );
-}
+});
