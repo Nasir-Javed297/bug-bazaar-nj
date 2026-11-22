@@ -300,3 +300,41 @@ login 400 / 401 / 500 / network down; product 404; order 404; unknown URL; produ
 - _Error handling per page (the previous state)._ Login, checkout, product and order pages each had their own status checks and wording, and two messages for the same 401 already differed.
 - _A global toast for every error._ Consistent, but a toast can't show field errors next to fields, can't replace a page with Not Found, and disappears before screen-reader users can act on it.
 - _Showing the server's message when it "looks friendly"._ Couples the UI to backend wording, and one day the backend sends a stack trace.
+
+## D3-5: Caching
+
+**Used:** RTK Query's cache, with an explicit policy in `src/api/apiSlice.ts`:
+
+- **Reuse:** each query result is cached per endpoint + arguments (`getProduct("p-0042")`). Product data stays cached for **5 minutes** after no page uses it (`keepUnusedDataFor: 300`).
+- **Freshness window:** `refetchOnMountOrArgChange: 60`. When a page mounts, cached data younger than 60 s is used with **no request**. Older data is shown **immediately** and refreshed in the background (**stale-while-revalidate**). Pages read `currentData`, which keeps the old copy on screen during that refresh, so there's no loading flash.
+- **Precise invalidation with tags:** `getProduct` provides `Product:<id>`, and every product list provides a tag for **each product it contains**. `createOrder` invalidates the ordered products (and, after a 409, the product that sold out, since the 409 proves our copy was wrong). RTK Query refetches exactly the entries carrying those tags: that product's page **and** every cached list showing it. Nothing else.
+- **Logout** wipes the cache (`resetApiState`, D3-3) so private data doesn't outlive the session.
+
+**Verified in the browser:**
+
+| Check                  | Result                                                                                                                                                        |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Revisiting reuses data | 5 visits list ↔ duck: **1** request for the duck, **0** extra for the list. Every revisit showed content at once                                             |
+| Stock after our order  | Duck page and search list showed **9**. After buying 2 via checkout, both showed **7** without a reload (1 refetch each, from the invalidated tag). Server: 7 |
+| Stale-while-revalidate | Revisited a product cached **64 s** earlier: content on screen after 30 ms, no loading state, **1** background request                                        |
+
+### When stale data is acceptable
+
+Stale data is fine when **being slightly out of date can't cause a wrong outcome**, and something downstream catches it if it matters.
+
+| Data                                  | How stale may it be?                                              | Why that's OK, and what protects us                                                                                                                             |
+| ------------------------------------- | ----------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Name, price, image, rating            | Minutes                                                           | Rarely change. Checkout sends only ids + quantities, so the **server prices the order**, not our cached copy                                                    |
+| Stock (in lists and on product pages) | Up to ~60 s on revisit; immediately fresh after **our own** order | It's display only. The **server re-checks stock at checkout** (409 names the item and fixes the cart), so stale stock can't oversell. Live updates come in D4-4 |
+| Search results / list order           | Minutes                                                           | A slightly old list is still a useful list. Refreshed in the background on revisit                                                                              |
+| Order status                          | Seconds                                                           | The user is actively watching it, so it's **polled** every 2 s until completed                                                                                  |
+| Account (`/me`)                       | Not across users                                                  | Tied to the session. Wiped on logout. A 401 clears it                                                                                                           |
+| Cart                                  | Never "stale": it's client state                                  | It's ours, not a copy of server data. Stock in it is a snapshot, corrected by the server on checkout                                                            |
+
+**Rule of thumb:** cache what's expensive and slow-changing, invalidate precisely what **we** just changed, bound the staleness of what **others** change, and let the server be the final judge for anything involving money or stock.
+
+**Considered:**
+
+- _No caching (`refetchOnMountOrArgChange: true` everywhere)._ Always fresh, but every Back/forward costs a request and a loading spinner, which is exactly what this task asks us to avoid.
+- _Invalidating all products after any order (one `LIST` tag)._ Simpler, but it refetches every cached list and page, even for products we didn't buy. Per-product tags refetch only what changed.
+- _`refetchOnFocus` / polling for stock._ Considered for stock freshness. Live stock is D4-4's job (a push-based feed), so the cache doesn't need to poll.

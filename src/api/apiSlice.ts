@@ -50,18 +50,37 @@ export type CreateOrderArgs = CreateOrderRequest & {
   idempotencyKey: string;
 };
 
+/** How long product data stays cached after no page uses it (task D3-5). */
+const PRODUCT_CACHE_SECONDS = 5 * 60;
+
 export const api = createApi({
   // Where this API's cache lives inside the Redux store: state.api
   reducerPath: "api",
   baseQuery: clientBaseQuery,
+
+  // ---------- Caching policy (task D3-5, explained in docs/decisions.md) ----------
+  // When a page mounts: cached data younger than 60 s is reused with NO request. Older data is
+  // shown immediately AND refreshed in the background ("stale-while-revalidate"); pages read
+  // `currentData`, which keeps the old copy on screen during that refresh, so nothing flashes.
+  refetchOnMountOrArgChange: 60,
+
+  // Tags label cache entries so a mutation can say which ones are now out of date.
   tagTypes: ["Product"],
+
   endpoints: (build) => ({
     // build.query<ResponseType, ArgumentType>: READS data, results are cached.
     getProducts: build.query<ProductsResponse, ProductsQuery>({
       query: (query) => ({ path: `/products${toQueryString(query)}` }),
+      keepUnusedDataFor: PRODUCT_CACHE_SECONDS,
+      // A list is tagged with EVERY product it contains, so changing one product's stock
+      // refreshes exactly the lists that show it.
+      providesTags: (result) =>
+        result ? result.items.map((product) => ({ type: "Product" as const, id: product.id })) : [],
     }),
     getProduct: build.query<Product, string>({
       query: (id) => ({ path: `/products/${encodeURIComponent(id)}` }),
+      keepUnusedDataFor: PRODUCT_CACHE_SECONDS,
+      providesTags: (_result, _error, id) => [{ type: "Product", id }],
     }),
     getOrder: build.query<Order, string>({
       query: (id) => ({ path: `/orders/${encodeURIComponent(id)}` }),
@@ -81,6 +100,16 @@ export const api = createApi({
         body: { items },
         headers: { "Idempotency-Key": idempotencyKey },
       }),
+      // Task D3-5: "refresh stock after an order is placed". Mark every ordered product as out
+      // of date; RTK Query refetches every cached entry with those tags (details pages AND the
+      // lists that contain them). After a 409, the sold-out product's cached stock is also
+      // proven wrong, so it's refreshed too.
+      invalidatesTags: (result, error, { items }) => {
+        if (result)
+          return items.map(({ productId }) => ({ type: "Product" as const, id: productId }));
+        const soldOutId = error?.status === 409 ? error.details?.productId : undefined;
+        return soldOutId ? [{ type: "Product" as const, id: soldOutId }] : [];
+      },
     }),
   }),
 });
