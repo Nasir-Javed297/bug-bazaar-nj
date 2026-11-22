@@ -162,3 +162,25 @@ Before, the app had three separate `useState` calls (`loading`, `error`, `bugs`)
 - _Our own `useEffect` + `AbortController` + `fetch` for the details page._ The classic pattern, but it would bypass the cache (D3-5) and duplicate what RTK Query already does. We use RTK Query's own abort, which uses an `AbortController` internally.
 - _Aborting immediately in the cleanup._ Breaks in StrictMode (described above).
 - _Throttling scroll with `setTimeout`._ `requestAnimationFrame` matches the screen refresh rate and is paused in background tabs, so it's cheaper and smoother.
+
+## D2-5: Custom hooks
+
+**Used:** two generic, typed hooks that know nothing about products, built on one shared helper module.
+
+| Hook                                        | What it does                                                                                         | Used by                                         | Duplication it removes                                                                                                   |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `useLocalStorage<T>(key, default, isValid)` | `useState` that's saved to localStorage, validated on read, and synced across tabs (`storage` event) | Dev panel (and the "remember me" pattern later) | The Dev panel kept `useState` and storage in sync by hand. `scenarios.ts` had its own read/parse/validate/try-catch code |
+| `useDebouncedValue<T>(value, ms)`           | Returns the value once it has stopped changing for `ms`                                              | Product search (300 ms)                         | Timer + cleanup logic that would otherwise be rewritten for every debounced input                                        |
+
+- **`src/utils/storage.ts`** (`readStorage`, `writeStorage`, `removeStorage`, `isRecord`) is the single copy of the safe localStorage logic. It's plain functions, not hooks, because the mock API (`scenarios.ts`) and the cart persistence (D3-2) run outside React components.
+- **Validation by type guard:** `readStorage<T>(key, isValid)` only returns a `T` if `isValid` says so. Corrupt or old data falls back to the default instead of crashing.
+- **Debounce effect:** the search box and URL still update on every keystroke (instant feedback, and Back still works). Only the request waits. Typing "keyboard" sends **1** request instead of 8.
+- Other custom hooks in the app: `useProductFilters` (URL ↔ typed filters, D2-2) and `useCancelProductRequestOnLeave` (D2-4).
+
+**Verified:** typing "keyboard" quickly → one `search=keyboard` request. A Dev panel switch toggled in one tab updated another tab without a reload. Corrupt JSON in storage → defaults, and storage repaired.
+
+**Considered:**
+
+- _A `useDebouncedCallback` (debounce the function instead of the value)._ Useful for "save after typing", but a debounced **value** fits better as a query argument and needs no `useRef` juggling.
+- _lodash.debounce / usehooks-ts._ Fine libraries, but each hook is under 25 lines, and writing them shows how the cleanup works.
+- _Functional updates in `useLocalStorage` (`setValue(prev => ...)`)._ Left out to keep the API simple. The Dev panel computes the next value from the current one directly.

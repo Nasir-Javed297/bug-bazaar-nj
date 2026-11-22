@@ -1,5 +1,6 @@
 // Switches that make the mock API fail on purpose, so every error state can be tested.
 // Saved in localStorage so they survive a page refresh. Flipped from the Dev panel.
+import { isRecord, readStorage, removeStorage } from "../utils/storage";
 
 export type MockScenarios = {
   /** GET /api/products responds 500. */
@@ -30,24 +31,18 @@ export const SCENARIO_LABELS: Record<keyof MockScenarios, string> = {
   slowNetwork: "Slow network (+2-4 s)",
 };
 
-const STORAGE_KEY = "bug-bazaar:mock-scenarios";
+export const SCENARIOS_STORAGE_KEY = "bug-bazaar:mock-scenarios";
 
+const SCENARIO_KEYS = Object.keys(DEFAULT_SCENARIOS) as (keyof MockScenarios)[];
+
+/** Type guard: a stored value is valid only if every switch is a boolean. */
+export function isMockScenarios(value: unknown): value is MockScenarios {
+  return isRecord(value) && SCENARIO_KEYS.every((key) => typeof value[key] === "boolean");
+}
+
+/** Read by the mock handlers on every request, so a switch applies to the next request. */
 export function getScenarios(): MockScenarios {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed: unknown = raw ? JSON.parse(raw) : {};
-    const result = { ...DEFAULT_SCENARIOS };
-    if (typeof parsed === "object" && parsed !== null) {
-      // Only copy keys we know, and only boolean values: never trust stored data blindly.
-      for (const key of Object.keys(DEFAULT_SCENARIOS) as (keyof MockScenarios)[]) {
-        const value: unknown = (parsed as Record<string, unknown>)[key];
-        if (typeof value === "boolean") result[key] = value;
-      }
-    }
-    return result;
-  } catch {
-    return { ...DEFAULT_SCENARIOS };
-  }
+  return readStorage(SCENARIOS_STORAGE_KEY, isMockScenarios) ?? DEFAULT_SCENARIOS;
 }
 
 /**
@@ -59,17 +54,5 @@ export const MOCK_DB_STORAGE_KEY = "bug-bazaar:mock-db";
 
 /** Clears saved orders and stock changes. Takes effect on the next page load. */
 export function resetMockDatabase(): void {
-  try {
-    localStorage.removeItem(MOCK_DB_STORAGE_KEY);
-  } catch {
-    // Storage unavailable: nothing to reset.
-  }
-}
-
-export function setScenarios(scenarios: MockScenarios): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarios));
-  } catch {
-    // Storage unavailable: switches simply won't persist.
-  }
+  removeStorage(MOCK_DB_STORAGE_KEY);
 }

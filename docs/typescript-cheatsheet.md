@@ -357,3 +357,18 @@ export function QueryStateView<T>({ state, children }: QueryStateViewProps<T>) {
 - `<T>` on the component: TypeScript works out `T` from the `state` you pass (here `T = Product`).
 - The render prop is only called when the data exists, so the page can't use `product` while loading.
 - `ReactNode` = "anything React can render" (JSX, text, `null`...).
+
+## 19. Generic hooks, tuples and type-guard parameters
+
+```ts
+// src/hooks/useLocalStorage.ts
+export function useLocalStorage<T>(
+  key: string,
+  defaultValue: T,
+  isValid: (value: unknown) => value is T, // a function parameter that IS a type guard
+): [T, (value: T) => void] {               // a tuple: exactly [value, setter], like useState
+```
+
+- `<T>` is inferred from what you pass: `useLocalStorage(KEY, DEFAULT_SCENARIOS, isMockScenarios)` gives `T = MockScenarios`.
+- `[T, (value: T) => void]` is a **tuple type**: an array with a fixed length and a type per position. That's why `const [scenarios, setScenarios] = ...` is typed correctly.
+- Passing a type guard (`value is T`) lets generic code turn `unknown` into `T` safely.

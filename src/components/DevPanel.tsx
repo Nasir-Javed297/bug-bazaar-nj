@@ -1,22 +1,26 @@
 // A small floating panel to trigger mock API errors on purpose (task D1-2).
 // Only rendered when the mock API is on (see App.tsx).
-import { useState } from "react";
+import { useLocalStorage } from "../hooks/useLocalStorage";
 import {
-  getScenarios,
+  DEFAULT_SCENARIOS,
+  isMockScenarios,
   resetMockDatabase,
   SCENARIO_LABELS,
-  setScenarios,
+  SCENARIOS_STORAGE_KEY,
   type MockScenarios,
 } from "../mocks/scenarios";
 
 export function DevPanel() {
-  // Lazy initial state: getScenarios() reads localStorage once, on the first render only.
-  const [scenarios, setScenarioState] = useState<MockScenarios>(getScenarios);
+  // State saved in localStorage, where the mock handlers read it on every request.
+  // It also stays in sync if the switches are changed in another tab.
+  const [scenarios, setScenarios] = useLocalStorage(
+    SCENARIOS_STORAGE_KEY,
+    DEFAULT_SCENARIOS,
+    isMockScenarios,
+  );
 
   const toggle = (key: keyof MockScenarios) => {
-    const next = { ...scenarios, [key]: !scenarios[key] };
-    setScenarioState(next);
-    setScenarios(next);
+    setScenarios({ ...scenarios, [key]: !scenarios[key] });
   };
 
   const activeCount = Object.values(scenarios).filter(Boolean).length;

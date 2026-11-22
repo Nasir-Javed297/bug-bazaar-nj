@@ -9,15 +9,23 @@ import { Pagination } from "../components/Pagination";
 import { ProductGrid } from "../components/ProductGrid";
 import { QueryStateView } from "../components/QueryStateView";
 import { EmptyState } from "../components/StatusViews";
+import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { useProductFilters } from "../hooks/useProductFilters";
 import { DEFAULT_PAGE_SIZE, type ProductsResponse } from "../types/api";
+
+/** How long typing must pause before searching. Long enough to skip keystrokes, short enough to feel instant. */
+const SEARCH_DEBOUNCE_MS = 300;
 
 export function ProductListPage() {
   const { filters, updateFilters, clearFilters, hasActiveFilters } = useProductFilters();
 
+  // The search box (and URL) update on every keystroke; the REQUEST waits until typing pauses.
+  // Typing "keyboard" = 1 request instead of 8.
+  const debouncedSearch = useDebouncedValue(filters.search.trim(), SEARCH_DEBOUNCE_MS);
+
   // The filters from the URL ARE the query. A new combination = a new request (and cache entry).
   const result = useGetProductsQuery({
-    search: filters.search.trim(),
+    search: debouncedSearch,
     category: filters.category,
     sort: filters.sort,
     inStock: filters.inStock,
