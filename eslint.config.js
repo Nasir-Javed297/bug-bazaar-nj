@@ -45,9 +45,10 @@ export default tseslint.config(
   },
 
   // Task D1-4: all network requests go through src/api. Nothing else may call fetch directly.
+  // (src/test/** is test infrastructure: setup.ts has to wrap fetch for the jsdom environment.)
   {
     files: ["src/**/*.{ts,tsx}"],
-    ignores: ["src/api/**", "src/mocks/**"],
+    ignores: ["src/api/**", "src/mocks/**", "src/test/**"],
     rules: {
       "no-restricted-globals": [
         "error",
@@ -64,6 +65,12 @@ export default tseslint.config(
         },
       ],
     },
+  },
+
+  // Test files are never hot-reloaded, so the fast-refresh rule doesn't apply to them.
+  {
+    files: ["src/test/**", "**/*.test.{ts,tsx}"],
+    rules: { "react-refresh/only-export-components": "off" },
   },
 
   // Must stay LAST: turns off every rule that would conflict with Prettier's formatting.

@@ -11,6 +11,7 @@ import {
   type ProductsResponse,
   type User,
 } from "../types/api";
+import { isRecord, readStorage, writeStorage } from "../utils/storage";
 import { MOCK_DB_STORAGE_KEY } from "./scenarios";
 import { seedProducts } from "./seed";
 
@@ -145,28 +146,28 @@ function save(): void {
     orders: [...orders.values()],
     idempotency: Object.fromEntries(idempotency),
   };
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // Storage full or unavailable (e.g. private mode): the mock still works in memory.
-  }
+  // Shared helper (src/utils/storage.ts): never throws; the mock still works in memory if it fails.
+  writeStorage(STORAGE_KEY, state);
+}
+
+function isPersistedState(value: unknown): value is PersistedState {
+  return (
+    isRecord(value) &&
+    isRecord(value.stock) &&
+    Array.isArray(value.orders) &&
+    isRecord(value.idempotency)
+  );
 }
 
 function load(): void {
-  try {
-    const raw = typeof localStorage === "undefined" ? null : localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    // We wrote this data ourselves in save(), so we trust its shape.
-    const state = JSON.parse(raw) as PersistedState;
-    for (const [id, stock] of Object.entries(state.stock)) {
-      const product = productsById.get(id);
-      if (product) product.stock = stock;
-    }
-    for (const order of state.orders) orders.set(order.id, order);
-    for (const [key, orderId] of Object.entries(state.idempotency)) idempotency.set(key, orderId);
-  } catch {
-    // Corrupt data: start fresh.
+  const state = readStorage(STORAGE_KEY, isPersistedState);
+  if (!state) return; // nothing saved yet, or corrupt: start fresh
+  for (const [id, stock] of Object.entries(state.stock)) {
+    const product = productsById.get(id);
+    if (product) product.stock = stock;
   }
+  for (const order of state.orders) orders.set(order.id, order);
+  for (const [key, orderId] of Object.entries(state.idempotency)) idempotency.set(key, orderId);
 }
 
 load();

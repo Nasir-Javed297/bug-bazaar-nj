@@ -30,17 +30,19 @@ The app talks to a mock backend built with [MSW](https://mswjs.io/), which inter
 
 ## Scripts
 
-| Command                | What it does                                               |
-| ---------------------- | ---------------------------------------------------------- |
-| `npm run dev`          | Start the dev server with hot reload                       |
-| `npm run build`        | Type-check, then build a production bundle into `dist/`    |
-| `npm run preview`      | Serve the production build locally (run `build` first)     |
-| `npm run typecheck`    | Run the TypeScript compiler in strict mode, without output |
-| `npm run lint`         | Run ESLint (bugs, hooks rules, no `any`, no `@ts-ignore`)  |
-| `npm run lint:fix`     | Run ESLint and auto-fix what it can                        |
-| `npm run format`       | Format every file with Prettier                            |
-| `npm run format:check` | Check formatting without changing files                    |
-| `npm run check`        | Typecheck + lint + format check: run this before you push  |
+| Command                | What it does                                                      |
+| ---------------------- | ----------------------------------------------------------------- |
+| `npm run dev`          | Start the dev server with hot reload                              |
+| `npm run build`        | Type-check, then build a production bundle into `dist/`           |
+| `npm run preview`      | Serve the production build locally (run `build` first)            |
+| `npm run typecheck`    | Run the TypeScript compiler in strict mode, without output        |
+| `npm run lint`         | Run ESLint (bugs, hooks rules, no `any`, no `@ts-ignore`)         |
+| `npm run lint:fix`     | Run ESLint and auto-fix what it can                               |
+| `npm run format`       | Format every file with Prettier                                   |
+| `npm run format:check` | Check formatting without changing files                           |
+| `npm test`             | Run all tests once (Vitest)                                       |
+| `npm run test:watch`   | Re-run tests as you edit files                                    |
+| `npm run check`        | Typecheck + lint + format check + tests: run this before you push |
 
 ## Environment variables
 
@@ -68,6 +70,15 @@ src/
   App.tsx        Header + routes
   main.tsx       Entry point: mounts React
 ```
+
+## Testing
+
+`npm test` runs **30 tests** with [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/) in a simulated browser (jsdom).
+
+- **Behaviour, not implementation:** integration tests render the whole app at a URL and use it like a shopper: find controls by their label or role, type, click, and check what's on screen.
+- **Real requests:** the app's `fetch` calls go through the **same MSW handlers** as the browser mock (`msw/node`), so the data layer is tested for real.
+- **Covered:** cart rules, custom hooks, filtering and URL state, login (redirect back, wrong password, double submit, 401), checkout (success, **409**, no duplicate order on retry), error mapping, UI states, the error boundary.
+- Test files sit next to the code they test (`*.test.ts`); app-level tests and helpers are in `src/test/`.
 
 ## Data layer
 

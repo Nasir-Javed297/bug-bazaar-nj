@@ -29,6 +29,13 @@ How I used AI (Claude Code) on this project: what I asked, what I kept, what I c
 - **Fix:** stop polling when the last request failed. Re-tested with a missing order (1 request, stable screen) and with a real order (still reaches "Confirmed").
 - **Lesson:** for every "repeat until X" loop, ask what happens if X never comes.
 
+### 5. A fix applied at the wrong layer (D4-5)
+
+- **What happened:** integration tests showed "We couldn't reach the server". The cause was found correctly (Node's `fetch` rejects jsdom's `AbortSignal`), but the first fix wrapped `fetch` before MSW started. MSW then wrapped `fetch` again, on top, and threw before reaching the fix.
+- **How it was caught:** the tests still failed, so instead of trying variations, a probe printed the exact error, which was unchanged. That meant the fix wasn't running at all.
+- **Fix:** apply the wrapper after `server.listen()`, so it's the outermost layer. All 30 tests pass.
+- **Lesson:** when wrapping functions, order matters: the last wrapper applied is the first one called.
+
 ## AI uses (prompt, what I kept, what I changed)
 
 _To be completed in D5-7._

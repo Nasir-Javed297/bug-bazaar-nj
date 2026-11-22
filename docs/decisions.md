@@ -352,3 +352,40 @@ Stale data is fine when **being slightly out of date can't cause a wrong outcome
 - _`react-error-boundary` (library)._ Good API (`resetKeys`, `useErrorBoundary` for async errors). The class is about 40 lines, though, and writing it shows why boundaries must be classes and what they can't catch.
 - _One boundary around the whole app._ Simpler, but any page crash would take the header with it, so the user couldn't even reach the cart. Page-level plus app-level gives graceful degradation.
 - _Showing `error.message` on the fallback._ Never: it's developer text and may leak internals. The reference id links the user's report to the log entry instead.
+
+## D4-5: Testing
+
+**Used:** **Vitest** (shares Vite's config, fast, TypeScript out of the box) + **React Testing Library** + **user-event** in **jsdom**, with **MSW in Node** running the same handlers as the browser mock. A `makeStore()` factory gives every test a fresh Redux store, so no test's cart or session leaks into the next.
+
+**30 tests, by behaviour:**
+
+| Area                             | Tests | What they protect                                                                                                                                                                                |
+| -------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Cart logic (`cartSlice.test.ts`) | 7     | Same product twice → one line; quantity never above stock; sold-out not added; 0 removes; server stock lowers or removes a line; derived count and total; tampered saved cart rejected           |
+| Custom hooks                     | 7     | `useDebouncedValue` lets only the latest value through; `useLocalStorage` survives a "reload", ignores corrupt data, syncs from another tab; URL ↔ filters (shared links, bad URLs, short URLs) |
+| Filtering (integration)          | 2     | Search + category show only matching products and update the URL; a shared link restores the view and Clear filters resets it                                                                    |
+| Login (integration)              | 4     | Checkout → login → back to checkout; wrong password message; two instant submits → one request; a 401 signs the user out                                                                         |
+| Checkout (integration)           | 3     | **Successful order** (confirmation, empty cart, stock down); **409** names the item and fixes the cart; a retry after a lost reply reuses the key, one order, stock down once                    |
+| Errors and UI states             | 6     | 409/401/404/500 mapping and no raw text; server error → Try again recovers; missing product → Not Found; a crashing component → fallback + logged                                                |
+
+**Behaviour, not implementation:** tests find elements the way users do (`getByRole("button", { name: "Place order" })`, `getByLabelText("Email")`), and check visible results or server outcomes (stock, number of requests). They never assert which internal function ran, so refactoring doesn't break them, and missing accessible names would.
+
+**The tests catch real bugs.** I broke the app on purpose, one change at a time:
+
+| Deliberate bug                                        | Caught by                                                                    |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Cart ignores the stock limit                          | 4 cart tests                                                                 |
+| Checkout sends a new idempotency key on every attempt | "retrying after a lost reply returns the same order…"                        |
+| Login form without the double-submit guard            | "submitting the form twice in the same instant sends only one login request" |
+
+**Two environment problems solved (test-only, not app bugs):**
+
+1. **Node 22+ has its own global `localStorage`**, empty unless Node is started with a storage file, and it hid jsdom's working one. `src/test/setupEnvironment.ts` puts jsdom's storage back. The mock database now also uses the shared storage helpers instead of the bare global.
+2. **`AbortSignal` mismatch:** Node's `fetch` rejects jsdom's `AbortSignal`. `setup.ts` wraps `fetch` so the signal isn't passed on, and rejects with an `AbortError` when it fires. It has to be applied **after** `server.listen()`, because MSW wraps `fetch` too and the outermost wrapper runs first.
+
+**Considered:**
+
+- _Jest._ Works, but needs separate TypeScript/ESM configuration. Vitest reuses `vite.config.ts`.
+- _Mocking the API module (`vi.mock("../api/apiSlice")`)._ Faster to write, but it would test our fakes instead of the real data layer, and break on every refactor. MSW tests the real thing.
+- _End-to-end tests (Playwright)._ The strongest check of real browsers, but slower and heavier for CI. Worth adding for the checkout flow later. RTL integration tests cover the same behaviour at a fraction of the cost.
+- _Snapshot tests._ They test markup (implementation), not behaviour, and get approved blindly when they change.
