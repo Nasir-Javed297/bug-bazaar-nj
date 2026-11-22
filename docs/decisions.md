@@ -256,3 +256,16 @@ Before, the app had three separate `useState` calls (`loading`, `error`, `bugs`)
 - _Number input with +/− buttons._ Familiar, but needs extra handling for empty or invalid input while typing. The `<select>` is accessible by default and can't be invalid.
 
 **Not yet:** logging in is done from the console in this task. The login page, protected routes and keeping the session after a reload come in D3-3.
+
+## D3-3: Auth
+
+**Used:** a `session: { token, user } | null` in Redux, mirrored to **sessionStorage**; a `RequireAuth` wrapper for `/checkout` and `/account`; central 401 handling in the RTK Query base query; a login page with a ref-based double-submit guard. The full reasoning, especially where the token is stored and the trade-off, is in [`docs/auth.md`](auth.md).
+
+**Verified in the browser:** `/checkout` while logged out → `/login` → after login back on `/checkout` with the cart intact. Empty form → per-field 400 errors (`aria-invalid` + `aria-describedby`). Wrong password → "Email or password is incorrect", no session stored. Two `requestSubmit()` calls in the same instant → **1** request. Refresh keeps the session. **Session expired** switch + `/account` → `/api/me` 401 → token removed, redirected to `/login` with "Your session has expired". Header Log in from a product page → back on that product. Log out → token and cached private data cleared.
+
+**Considered:**
+
+- _localStorage / memory only / httpOnly cookie:_ compared in `docs/auth.md`.
+- _Handling 401 in each page._ Easy to forget on one page. The base query sees every response, so the rule is written once.
+- _Only disabling the button._ The disabled state applies on the next render, so two very fast submits could both get through. The ref check is synchronous.
+- _Client-side validation only (`required`, `type="email"`)._ The form uses `noValidate` so the server's 400 field errors are shown consistently (and D3-4 can map them). Browser validation would be a nice extra on top, not a replacement: the server must validate anyway.

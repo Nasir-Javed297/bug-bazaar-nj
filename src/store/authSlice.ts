@@ -1,4 +1,4 @@
-// The logged-in session. (The login form, token storage and 401 handling come in task D3-3.)
+// The logged-in session. Where the token is stored and why: docs/auth.md.
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { User } from "../types/api";
 import type { RootState } from "./store";
@@ -8,13 +8,17 @@ export type Session = {
   user: User;
 };
 
+/** Why the user was logged out, so the login page can explain it. */
+export type LogoutReason = "user" | "expired";
+
 export type AuthState = {
   // One value instead of separate `token` and `user` fields: you either have BOTH or neither.
   // "A token but no user" can't be represented.
   session: Session | null;
+  logoutReason: LogoutReason | null;
 };
 
-const initialState: AuthState = { session: null };
+const initialState: AuthState = { session: null, logoutReason: null };
 
 const authSlice = createSlice({
   name: "auth",
@@ -22,9 +26,12 @@ const authSlice = createSlice({
   reducers: {
     loggedIn(state, action: PayloadAction<Session>) {
       state.session = action.payload;
+      state.logoutReason = null;
     },
-    loggedOut(state) {
+    /** "user" = clicked Log out. "expired" = the server answered 401 (see apiSlice.ts). */
+    loggedOut(state, action: PayloadAction<LogoutReason>) {
       state.session = null;
+      state.logoutReason = action.payload;
     },
   },
 });
@@ -36,3 +43,4 @@ export const selectSession = (state: RootState) => state.auth.session;
 export const selectCurrentUser = (state: RootState) => state.auth.session?.user ?? null;
 export const selectAuthToken = (state: RootState) => state.auth.session?.token ?? null;
 export const selectIsLoggedIn = (state: RootState) => state.auth.session !== null;
+export const selectLogoutReason = (state: RootState) => state.auth.logoutReason;

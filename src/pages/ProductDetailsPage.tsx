@@ -13,31 +13,16 @@ import { RelatedProducts } from "../components/RelatedProducts";
 import { StockBadge } from "../components/StockBadge";
 import { useCancelProductRequestOnLeave } from "../hooks/useCancelProductRequestOnLeave";
 import { formatPrice } from "../utils/formatPrice";
+import { getFromPath } from "../utils/navigation";
 import { NotFound } from "./NotFound";
-
-/**
- * Where "Back to products" should go. ProductCard passes `{ from: "/?category=ducks..." }`
- * as navigation state, so the user returns to the same filtered list. Navigation state can be
- * anything (or missing, e.g. when the page was opened from a shared link), so we check it.
- */
-function getBackLink(state: unknown): string {
-  if (
-    typeof state === "object" &&
-    state !== null &&
-    "from" in state &&
-    typeof state.from === "string" &&
-    state.from.startsWith("/")
-  ) {
-    return state.from;
-  }
-  return "/";
-}
 
 export function ProductDetailsPage() {
   // The `:id` part of the URL. Typed `string | undefined`: the router can't promise it exists.
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
-  const backLink = getBackLink(location.state);
+  // ProductCard passes { from: "/?category=ducks..." }, so Back returns to the same filtered list.
+  // Opened from a shared link there's no state, so fall back to the product list.
+  const backLink = getFromPath(location.state) ?? "/";
   // Opened from a related product? Then "back" goes to that product, not the list.
   const backLabel = backLink.startsWith("/products/")
     ? "Back to previous product"

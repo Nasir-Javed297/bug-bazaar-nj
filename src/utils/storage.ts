@@ -1,10 +1,18 @@
-// The ONE place that reads and writes localStorage safely. Used by:
+// The ONE place that reads and writes browser storage safely. Used by:
 // - useLocalStorage (React state synced with storage, src/hooks/useLocalStorage.ts)
 // - the mock API's error switches (src/mocks/scenarios.ts)
-// - the cart, which survives a reload (task D3-2)
+// - the cart, which survives a reload (src/store/cartPersistence.ts, localStorage)
+// - the login session (src/store/authPersistence.ts, sessionStorage; see docs/auth.md)
 //
-// localStorage can throw (private mode, storage full, blocked by settings) and can contain
+// Storage can throw (private mode, storage full, blocked by settings) and can contain
 // anything (old versions of our data, edits made in DevTools), so every read is validated.
+
+/** "local" = localStorage (kept until removed), "session" = sessionStorage (until the tab closes). */
+export type StorageArea = "local" | "session";
+
+// Resolved inside try blocks: even READING window.localStorage can throw when storage is blocked.
+const getStorage = (area: StorageArea): Storage =>
+  area === "session" ? window.sessionStorage : window.localStorage;
 
 /**
  * Reads and parses a JSON value. Returns undefined if it's missing, unreadable,
@@ -16,9 +24,10 @@
 export function readStorage<T>(
   key: string,
   isValid: (value: unknown) => value is T,
+  area: StorageArea = "local",
 ): T | undefined {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = getStorage(area).getItem(key);
     if (raw === null) return undefined;
     const parsed: unknown = JSON.parse(raw);
     return isValid(parsed) ? parsed : undefined;
@@ -28,17 +37,17 @@ export function readStorage<T>(
 }
 
 /** Saves a value as JSON. Fails silently: the app still works, it just won't remember. */
-export function writeStorage(key: string, value: unknown): void {
+export function writeStorage(key: string, value: unknown, area: StorageArea = "local"): void {
   try {
-    localStorage.setItem(key, JSON.stringify(value));
+    getStorage(area).setItem(key, JSON.stringify(value));
   } catch {
     // storage full or unavailable
   }
 }
 
-export function removeStorage(key: string): void {
+export function removeStorage(key: string, area: StorageArea = "local"): void {
   try {
-    localStorage.removeItem(key);
+    getStorage(area).removeItem(key);
   } catch {
     // storage unavailable
   }

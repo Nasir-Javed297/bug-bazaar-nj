@@ -1,9 +1,12 @@
 import { Route, Routes } from "react-router-dom";
 import { DevPanel } from "./components/DevPanel";
 import { Header } from "./components/Header";
+import { RequireAuth } from "./components/RequireAuth";
 import { config } from "./config";
+import { AccountPage } from "./pages/AccountPage";
 import { CartPage } from "./pages/CartPage";
 import { CheckoutPage } from "./pages/CheckoutPage";
+import { LoginPage } from "./pages/LoginPage";
 import { NotFound } from "./pages/NotFound";
 import { OrderConfirmationPage } from "./pages/OrderConfirmationPage";
 import { ProductDetailsPage } from "./pages/ProductDetailsPage";
@@ -22,7 +25,24 @@ export default function App() {
           <Route path="/" element={<ProductListPage />} />
           <Route path="/products/:id" element={<ProductDetailsPage />} />
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          {/* Protected routes: logged-out users are sent to /login and brought back after. */}
+          <Route
+            path="/checkout"
+            element={
+              <RequireAuth>
+                <CheckoutPage />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/account"
+            element={
+              <RequireAuth>
+                <AccountPage />
+              </RequireAuth>
+            }
+          />
           <Route path="/orders/:id" element={<OrderConfirmationPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

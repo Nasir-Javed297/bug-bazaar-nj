@@ -1,4 +1,5 @@
-// Route "/checkout": review the order and place it.
+// Route "/checkout": review the order and place it. Protected by RequireAuth (App.tsx),
+// so there is always a session here.
 //
 // Duplicate orders are prevented in two layers:
 // 1. The button is disabled while the order is being sent (no double-click double-submit).
@@ -11,7 +12,6 @@ import type { ClientError } from "../api/client";
 import { toClientError } from "../api/requestState";
 import { OrderSummary } from "../components/OrderSummary";
 import { EmptyState } from "../components/StatusViews";
-import { selectIsLoggedIn } from "../store/authSlice";
 import { cartCleared, selectCartItems, stockUpdated, type CartItem } from "../store/cartSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { formatPrice } from "../utils/formatPrice";
@@ -39,7 +39,6 @@ function describeCheckoutError(error: ClientError, items: CartItem[]): string {
 
 export function CheckoutPage() {
   const items = useAppSelector(selectCartItems);
-  const isLoggedIn = useAppSelector(selectIsLoggedIn);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [createOrder, { isLoading }] = useCreateOrderMutation();
@@ -117,22 +116,16 @@ export function CheckoutPage() {
         </ul>
 
         <OrderSummary>
-          {isLoggedIn ? (
-            <button
-              type="button"
-              className="button"
-              onClick={() => void placeOrder()}
-              // Layer 1 against duplicates: no second click while the first is in flight.
-              disabled={isLoading || items.length === 0}
-              aria-busy={isLoading}
-            >
-              {isLoading ? "Placing order…" : "Place order"}
-            </button>
-          ) : (
-            <p>
-              Please <Link to="/login">log in</Link> to place your order.
-            </p>
-          )}
+          <button
+            type="button"
+            className="button"
+            onClick={() => void placeOrder()}
+            // Layer 1 against duplicates: no second click while the first is in flight.
+            disabled={isLoading || items.length === 0}
+            aria-busy={isLoading}
+          >
+            {isLoading ? "Placing order…" : "Place order"}
+          </button>
         </OrderSummary>
       </div>
     </div>
