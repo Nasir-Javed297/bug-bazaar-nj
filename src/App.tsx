@@ -2,6 +2,7 @@ import { Link, Route, Routes } from "react-router-dom";
 import { DevPanel } from "./components/DevPanel";
 import { config } from "./config";
 import { NotFound } from "./pages/NotFound";
+import { ProductDetailsPage } from "./pages/ProductDetailsPage";
 import { ProductListPage } from "./pages/ProductListPage";
 
 // App only lays out the page: header, routes and dev tools.
@@ -17,6 +18,7 @@ export default function App() {
       <main>
         <Routes>
           <Route path="/" element={<ProductListPage />} />
+          <Route path="/products/:id" element={<ProductDetailsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
