@@ -1,5 +1,7 @@
 # The Bug Bazaar
 
+[![CI](https://github.com/Nasir-Javed297/bug-bounty-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/Nasir-Javed297/bug-bounty-starter/actions/workflows/ci.yml)
+
 A small online store for developer gear (rubber ducks, mechanical keyboards, coffee and stickers), built with **React + TypeScript**. It runs entirely in the browser against a **mock API**, so no backend is needed.
 
 > This repo started as the Week 1 _Bug Bounty Board_. The history is kept in Git.
@@ -79,6 +81,10 @@ src/
 - **Real requests:** the app's `fetch` calls go through the **same MSW handlers** as the browser mock (`msw/node`), so the data layer is tested for real.
 - **Covered:** cart rules, custom hooks, filtering and URL state, login (redirect back, wrong password, double submit, 401), checkout (success, **409**, no duplicate order on retry), error mapping, UI states, the error boundary.
 - Test files sit next to the code they test (`*.test.ts`); app-level tests and helpers are in `src/test/`.
+
+## Continuous integration
+
+Every pull request into `main` (and every push to `main` / `dev`) runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) on GitHub Actions: **type check → lint → format check → tests → build**. A branch protection rule on `main` makes this `verify` check **required**, so a pull request with a failing check **can't be merged**, not even by an admin.
 
 ## Data layer
 

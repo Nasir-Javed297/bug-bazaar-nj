@@ -389,3 +389,32 @@ Stale data is fine when **being slightly out of date can't cause a wrong outcome
 - _Mocking the API module (`vi.mock("../api/apiSlice")`)._ Faster to write, but it would test our fakes instead of the real data layer, and break on every refactor. MSW tests the real thing.
 - _End-to-end tests (Playwright)._ The strongest check of real browsers, but slower and heavier for CI. Worth adding for the checkout flow later. RTL integration tests cover the same behaviour at a fraction of the cost.
 - _Snapshot tests._ They test markup (implementation), not behaviour, and get approved blindly when they change.
+
+## D4-6: Git / CI / CD
+
+**Used:** **GitHub Actions** ([`.github/workflows/ci.yml`](../.github/workflows/ci.yml)) plus a **branch protection rule** on `main`.
+
+- **When:** every pull request into `main`, and every push to `main` / `dev`.
+- **What:** `npm ci` (exactly the lock file's versions), then **type check → lint → format check → tests → build**, one step each, so a red PR shows which check failed. Node 22 (current LTS).
+- **`concurrency`** cancels an older run when you push again. **`permissions: contents: read`** gives the workflow least privilege.
+- **Branch protection on `main`:** _Require a pull request_ (no approvals: I work alone), _Require status checks to pass_ → **`verify`**, and **Do not allow bypassing**. Without that last one, the repo admin could still merge a red PR. The repo is public, so GitHub's free plan enforces the rule.
+
+**Verified: a failing test blocks the merge.** The final pull request (#1, `dev` → `main`) is open. Then:
+
+1. `8f263eb` added a deliberately failing test (`formatPrice(1999)` expected to be `"$20.00"`).
+2. CI failed at the Tests step ("Expected: $20.00, Received: $19.99"), on both the push and the pull-request run.
+3. The pull request showed **"All checks have failed"**, both `CI / verify` checks marked **Required**, and **"Merge pull request" disabled**:
+
+   ![Merge blocked by the required CI check](images/ci-merge-blocked.png)
+
+4. `e8c1ef9` reverted the demo, and CI went green again.
+
+**Also:** GitHub warned that `actions/checkout@v4` and `actions/setup-node@v4` run on the deprecated Node 20 runtime, so both were moved to `@v5`.
+
+**Bonus (auto-deploy `main`): not done.** Deploying would mean publishing the store (with its mock API) to GitHub Pages under `/bug-bounty-starter/`, which needs a Vite `base`, a router `basename`, image paths and the MSW worker path to all respect that sub-path. I prioritised the required tasks. The CI job's `dist/` output is ready for it.
+
+**Considered:**
+
+- _Running checks only locally (`npm run check`) or with a pre-commit hook._ Useful, but anyone can skip them. CI runs on GitHub's machines for every PR and can't be skipped.
+- _A matrix over Node 20/22/24._ More coverage, but 3× the minutes. `engines` says ≥ 20, and Node 22 is the LTS version we develop against.
+- _Rulesets instead of a classic branch protection rule._ Newer and more flexible. The classic rule does exactly what we need with fewer settings.
