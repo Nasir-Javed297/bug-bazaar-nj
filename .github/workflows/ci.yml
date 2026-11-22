@@ -1,0 +1,56 @@
+# Continuous integration (task D4-6): every pull request into main, and every push to main/dev,
+# is checked with linting, type checking, formatting, tests and a production build.
+# A branch protection rule on main makes the "verify" check REQUIRED, so a failing test blocks
+# the merge (see docs/decisions.md, D4-6).
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, dev]
+
+# If you push again before the previous run finishes, cancel the old run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Least privilege: this workflow only needs to read the code.
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm # reuse downloaded packages between runs
+
+      # npm ci installs EXACTLY what package-lock.json says (and fails if it's out of date).
+      - name: Install dependencies
+        run: npm ci
+
+      # One step per check, so the PR shows which one failed.
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
