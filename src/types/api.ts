@@ -9,6 +9,11 @@
 export const CATEGORIES = ["keyboards", "ducks", "coffee", "stickers"] as const;
 export type Category = (typeof CATEGORIES)[number];
 
+/** Type guard: turns any string (e.g. from a URL) into a `Category`, or rejects it. */
+export function isCategory(value: string): value is Category {
+  return (CATEGORIES as readonly string[]).includes(value);
+}
+
 export type Product = {
   id: string;
   name: string;
@@ -23,6 +28,15 @@ export type Product = {
 export const SORT_OPTIONS = ["relevance", "price-asc", "price-desc", "rating", "name"] as const;
 export type SortOption = (typeof SORT_OPTIONS)[number];
 
+export function isSortOption(value: string): value is SortOption {
+  return (SORT_OPTIONS as readonly string[]).includes(value);
+}
+
+/** Default number of products per page. */
+export const DEFAULT_PAGE_SIZE = 24;
+/** Largest page the API will return (enough to fetch every product at once). */
+export const MAX_PAGE_SIZE = 5000;
+
 /** Query parameters for GET /api/products. All are optional. */
 export type ProductsQuery = {
   search?: string;
@@ -32,6 +46,8 @@ export type ProductsQuery = {
   page?: number;
   /** Extension to the shared contract: only return products with stock > 0. */
   inStock?: boolean;
+  /** Extension to the shared contract: items per page (default 24, max 5000). */
+  pageSize?: number;
 };
 
 /** 200 response of GET /api/products. */

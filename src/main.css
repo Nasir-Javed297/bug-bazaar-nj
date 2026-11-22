@@ -307,3 +307,40 @@
   color: #111827;
   text-decoration: none;
 }
+
+.dev-panel {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1000;
+  max-width: 320px;
+  padding: 10px 14px;
+  background: #111827;
+  color: #f9fafb;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.dev-panel summary {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.dev-panel fieldset {
+  border: 1px solid #374151;
+  border-radius: 6px;
+  margin: 10px 0;
+}
+
+.dev-panel-option {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 6px 0;
+}
+
+.dev-panel-hint {
+  color: #d1d5db;
+  line-height: 1.4;
+}

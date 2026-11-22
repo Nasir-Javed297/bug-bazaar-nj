@@ -5,6 +5,8 @@ import type { RequestState } from "./types/request";
 import { Home } from "./pages/Home";
 import { BugDetails } from "./pages/BugDetailPage";
 import { NotFound } from "./pages/NotFound";
+import { DevPanel } from "./components/DevPanel";
+import { config } from "./config";
 
 export default function App() {
   // ONE state value instead of three (bugs, loading, error).
@@ -54,6 +56,7 @@ export default function App() {
         <Route path="/bugs/:id" element={<BugDetails bugsState={bugsState} />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+      {config.enableMocks && <DevPanel />}
     </>
   );
 }
