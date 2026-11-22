@@ -1,40 +1,84 @@
 # The Bug Bazaar
 
-> A small store for developer gear (rubber ducks, keyboards, coffee, stickers). Grown from the Week 1 Bug Bounty Board. Full setup instructions arrive in task D1-1.
+A small online store for developer gear (rubber ducks, mechanical keyboards, coffee and stickers), built with **React + TypeScript**. It runs entirely in the browser against a **mock API**, so no backend is needed.
 
-## Week 1 history: Bug Bounty Board
+> This repo started as the Week 1 _Bug Bounty Board_. The history is kept in Git.
 
-You have 30 minutes. Build a small React app that lists bugs, searches them, adds new ones, and opens a details page.
+## Quick start (under 5 minutes)
 
-## Get started
+**You need:** [Node.js](https://nodejs.org/) **20 or newer** (`node -v` to check) and npm (comes with Node).
 
-1. Unzip this project and open the folder in your editor.
-2. Run `npm install` and `npm run dev`.
-3. Run `git init`, then create your own **private** repo and push to it.
-4. Give your evaluator access to the repo.
-5. Commit as you go. Your commit history is part of your submission.
+```bash
+git clone https://github.com/Nasir-Javed297/bug-bounty-starter.git
+cd bug-bounty-starter
+npm install
+npm run dev
+```
 
-`src/mockApi.js` fails about one time in four on purpose. Please don't change it.
+Open the URL printed in the terminal (usually <http://localhost:5173>). That's it: the mock API starts automatically.
 
-## Missions
+A `.env` file is **optional**. Every setting has a default. To change one, copy `.env.example` to `.env` and edit it (see [Environment variables](#environment-variables)).
 
-| Mission | Requirements | Points |
-| --- | --- | --- |
-| Load the bugs | Call `fetchBugs` on mount; show loading and error states | 5 |
-| Show the board | Use a `BugList` and `BugCard` component with stable keys | 4 |
-| Search | Filter by title using a derived value, without storing filtered results in state | 4 |
-| Report a bug | Add through a controlled form, reject blank titles, and update state immutably | 5 |
-| Open a case | Add a `/bugs/:id` page and a route for unknown URLs | 2 |
-| Submit and walk through | Submit working, readable code; explain where the state lives, how data flows, and one trade-off | 5 |
+## Scripts
 
-Bonus for bragging rights only: add a Retry button to the error state.
+| Command                | What it does                                               |
+| ---------------------- | ---------------------------------------------------------- |
+| `npm run dev`          | Start the dev server with hot reload                       |
+| `npm run build`        | Type-check, then build a production bundle into `dist/`    |
+| `npm run preview`      | Serve the production build locally (run `build` first)     |
+| `npm run typecheck`    | Run the TypeScript compiler in strict mode, without output |
+| `npm run lint`         | Run ESLint (bugs, hooks rules, no `any`, no `@ts-ignore`)  |
+| `npm run lint:fix`     | Run ESLint and auto-fix what it can                        |
+| `npm run format`       | Format every file with Prettier                            |
+| `npm run format:check` | Check formatting without changing files                    |
+| `npm run check`        | Typecheck + lint + format check: run this before you push  |
 
-## Rules
+## Environment variables
 
-Use the browser, DevTools, and documentation. Don't use AI tools.
+Defined in `.env.example`, typed in `src/vite-env.d.ts` and read **only** in `src/config.ts`. Vite only exposes variables that start with `VITE_` to the browser, so **never put secrets here**.
 
-## Submit
+| Variable            | Default | Purpose                                                                                   |
+| ------------------- | ------- | ----------------------------------------------------------------------------------------- |
+| `VITE_API_BASE_URL` | `/api`  | Base URL for every API request                                                            |
+| `VITE_ENABLE_MOCKS` | `true`  | `true` starts the in-browser mock API (MSW). `false` turns it off (to use a real backend) |
 
-1. Push your final commit to `main` before time is called.
-2. Paste your repo link into the evaluation form.
-3. Be ready for a 3-minute walkthrough.
+## Folder structure
+
+```
+docs/            Written tasks: decisions, API contract, architecture...
+src/
+  api/           Data layer: the only code that talks to the network
+  mocks/         Mock backend (MSW) for dev and tests
+  store/         Redux store and slices (cart, auth)
+  pages/         One component per route
+  components/    Reusable UI pieces
+  hooks/         Custom React hooks
+  types/         Shared TypeScript types (the API contract)
+  utils/         Small pure helper functions
+  config.ts      Reads environment variables
+  App.tsx        Header + routes
+  main.tsx       Entry point: mounts React
+```
+
+## Code quality
+
+- **TypeScript strict mode.** `any`, `@ts-ignore` and `@ts-expect-error` are lint errors.
+- **ESLint** (`eslint.config.js`) catches bugs. **Prettier** (`.prettierrc.json`) handles formatting. `eslint-config-prettier` stops the two from conflicting.
+- **Line endings** are normalised to LF by `.gitattributes`, so Windows and macOS produce identical diffs.
+- **VS Code:** open the folder and accept the recommended extensions. Files are then formatted and lint-fixed on save (`.vscode/settings.json`).
+
+## Commit convention
+
+Every commit starts with its task ID, for example `D3-2: add cart page`.
+
+## Documentation
+
+- [`docs/decisions.md`](docs/decisions.md): what was chosen for each task, the alternatives, and why
+
+## Troubleshooting
+
+| Problem                                    | Fix                                                                                                                                                                     |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run dev` says the port is in use      | Vite picks the next free port automatically. Use the URL it prints                                                                                                      |
+| `node: command not found` or syntax errors | Install Node 20 or newer                                                                                                                                                |
+| `npm audit` reports advisories             | They are in dev-only tooling (the Vite dev server) and don't affect the app. Don't run `npm audit fix --force`, which can upgrade Vite to an incompatible major version |

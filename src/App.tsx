@@ -47,7 +47,10 @@ export default function App() {
         </Link>
       </header>
       <Routes>
-        <Route path="/" element={<Home bugsState={bugsState} onAddBug={addBug} onRetry={retry} />} />
+        <Route
+          path="/"
+          element={<Home bugsState={bugsState} onAddBug={addBug} onRetry={retry} />}
+        />
         <Route path="/bugs/:id" element={<BugDetails bugsState={bugsState} />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
