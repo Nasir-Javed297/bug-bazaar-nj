@@ -13,7 +13,7 @@ import { EmptyState } from "../components/StatusViews";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useProductFilters } from "../hooks/useProductFilters";
-import { DEFAULT_PAGE_SIZE, type ProductsResponse } from "../types/api";
+import { MAX_PAGE_SIZE, type ProductsResponse } from "../types/api";
 import type { RequestState } from "../types/request";
 
 /** How long typing must pause before searching. Long enough to skip keystrokes, short enough to feel instant. */
@@ -27,6 +27,8 @@ export function ProductListPage() {
   // Typing "keyboard" = 1 request instead of 8.
   const debouncedSearch = useDebouncedValue(filters.search.trim(), SEARCH_DEBOUNCE_MS);
 
+  const pageSize = filters.perPage === "all" ? MAX_PAGE_SIZE : filters.perPage;
+
   // The filters from the URL ARE the query. A new combination = a new request (and cache entry).
   //
   // Race conditions (task D2-6): replies can arrive in any order. Each reply is cached under
@@ -38,6 +40,7 @@ export function ProductListPage() {
     sort: filters.sort,
     inStock: filters.inStock,
     page: filters.page,
+    pageSize,
   });
 
   // During the debounce pause the box already says "duck" while the last request was for "du".
@@ -105,7 +108,7 @@ export function ProductListPage() {
             <ProductGrid products={items} />
             <Pagination
               page={filters.page}
-              totalPages={Math.ceil(total / DEFAULT_PAGE_SIZE)}
+              totalPages={Math.ceil(total / pageSize)}
               onPageChange={goToPage}
             />
           </>

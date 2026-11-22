@@ -5,7 +5,9 @@ import { DEFAULT_FILTERS, filtersToParams, parseFilters } from "./useProductFilt
 describe("product filters in the URL", () => {
   it("reads every filter from a shared link", () => {
     const filters = parseFilters(
-      new URLSearchParams("search=duck&category=ducks&inStock=true&sort=price-asc&page=3"),
+      new URLSearchParams(
+        "search=duck&category=ducks&inStock=true&sort=price-asc&page=3&perPage=all",
+      ),
     );
     expect(filters).toEqual({
       search: "duck",
@@ -13,12 +15,13 @@ describe("product filters in the URL", () => {
       inStock: true,
       sort: "price-asc",
       page: 3,
+      perPage: "all",
     });
   });
 
   it("falls back to safe defaults for values someone typed into the URL by hand", () => {
     const filters = parseFilters(
-      new URLSearchParams("category=shoes&sort=cheapest&page=-3&inStock=maybe"),
+      new URLSearchParams("category=shoes&sort=cheapest&page=-3&inStock=maybe&perPage=7"),
     );
     expect(filters).toEqual(DEFAULT_FILTERS);
   });

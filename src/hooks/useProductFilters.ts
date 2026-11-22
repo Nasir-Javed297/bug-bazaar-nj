@@ -4,6 +4,10 @@ import { useCallback, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { isCategory, isSortOption, type Category, type SortOption } from "../types/api";
 
+/** How many products per page. "all" shows the whole catalogue (task D4-3: the 5,000-item list). */
+export type PerPage = 24 | 96 | "all";
+export const PER_PAGE_OPTIONS: readonly PerPage[] = [24, 96, "all"];
+
 export type ProductFilters = {
   search: string;
   /** undefined = all categories */
@@ -12,6 +16,7 @@ export type ProductFilters = {
   sort: SortOption;
   /** 1-based */
   page: number;
+  perPage: PerPage;
 };
 
 export const DEFAULT_FILTERS: ProductFilters = {
@@ -20,6 +25,7 @@ export const DEFAULT_FILTERS: ProductFilters = {
   inStock: false,
   sort: "relevance",
   page: 1,
+  perPage: 24,
 };
 
 /**
@@ -30,6 +36,7 @@ export function parseFilters(params: URLSearchParams): ProductFilters {
   const category = params.get("category") ?? "";
   const sort = params.get("sort") ?? "";
   const page = Number(params.get("page"));
+  const perPage = params.get("perPage");
 
   return {
     search: params.get("search") ?? "",
@@ -37,6 +44,7 @@ export function parseFilters(params: URLSearchParams): ProductFilters {
     inStock: params.get("inStock") === "true",
     sort: isSortOption(sort) ? sort : DEFAULT_FILTERS.sort,
     page: Number.isInteger(page) && page > 0 ? page : 1,
+    perPage: perPage === "96" ? 96 : perPage === "all" ? "all" : 24,
   };
 }
 
@@ -48,6 +56,7 @@ export function filtersToParams(filters: ProductFilters): URLSearchParams {
   if (filters.inStock) params.set("inStock", "true");
   if (filters.sort !== DEFAULT_FILTERS.sort) params.set("sort", filters.sort);
   if (filters.page !== 1) params.set("page", String(filters.page));
+  if (filters.perPage !== DEFAULT_FILTERS.perPage) params.set("perPage", String(filters.perPage));
   return params;
 }
 
@@ -83,7 +92,8 @@ export function useProductFilters() {
     filters.search !== "" ||
     filters.category !== undefined ||
     filters.inStock ||
-    filters.sort !== DEFAULT_FILTERS.sort;
+    filters.sort !== DEFAULT_FILTERS.sort ||
+    filters.perPage !== DEFAULT_FILTERS.perPage;
 
   return { filters, updateFilters, clearFilters, hasActiveFilters };
 }

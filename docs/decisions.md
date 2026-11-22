@@ -449,3 +449,16 @@ Stale data is fine when **being slightly out of date can't cause a wrong outcome
 - _Stopping at the first 100._ The score only covered three fresh page loads. Auditing more states found three real problems.
 - _`aria-live` on the whole form._ Too noisy: every change would be read out. A targeted `role="alert"` plus focus management says exactly what's wrong and where.
 - _An "announcer" component reading out every route change._ Moving focus to `main` plus a unique page title gives screen readers the same information with less code.
+
+## D4-2: Performance
+
+**Used:** measurement first, on the production build, with `scripts/perf-list.js` (time until painted, long tasks, Chrome's Long Animation Frame split into script vs style/layout, scroll frame times). Full numbers in [`docs/performance.md`](performance.md).
+
+- **At 24/96 per page nothing was slow** (render ≤ 66 ms, no long tasks, mock work ≤ 5 ms). Visible delays were the simulated network and the intentional debounce. I didn't invent fixes for those.
+- **Added "Show: 24 / 96 / All"** (`?perPage=`, in the URL like the other filters), since the store needs the full 5,000-item list (D4-3). Profiling it found the **two slowest spots** in one 1.1 s frozen frame: **style & layout 650 ms** and **script 447 ms**.
+- **Fix #1, `content-visibility: auto`** on grid items: style & layout 650 → 65 ms, render after response 1,225 → 583 ms.
+- **Fix #2, virtualization** (`VirtualProductGrid`, `@tanstack/react-virtual`, only above 96 items): render after response 583 → ~84 ms, DOM 50,083 → 238 elements, scrolling 33 → 60 fps.
+
+**Considered and measured, not kept:** computing the "back to list" URL once in the grid instead of `useLocation()` in each card. 3 samples each showed no difference (median 442 vs 457 ms).
+
+**Considered and rejected after checking:** `useDeferredValue` (it doesn't defer on first mount in React 18, and Redux store updates are synchronous). Pagination only, with no "All" view (sidesteps the problem, but D4-3 asks for a smooth 5,000-item list).

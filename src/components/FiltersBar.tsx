@@ -1,7 +1,7 @@
 // Search, category, in-stock and sort controls. Presentational: it receives the current
 // filters and reports changes; it doesn't know they're stored in the URL.
 import type { FormEvent } from "react";
-import type { ProductFilters } from "../hooks/useProductFilters";
+import { PER_PAGE_OPTIONS, type PerPage, type ProductFilters } from "../hooks/useProductFilters";
 import {
   CATEGORIES,
   isCategory,
@@ -86,6 +86,24 @@ export function FiltersBar({ filters, onChange, onClear, hasActiveFilters }: Fil
           {SORT_OPTIONS.map((option) => (
             <option key={option} value={option}>
               {SORT_LABELS[option]}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="filters__field">
+        <label htmlFor="filter-per-page">Show</label>
+        <select
+          id="filter-per-page"
+          value={String(filters.perPage)}
+          onChange={(e) => {
+            const value = PER_PAGE_OPTIONS.find((option) => String(option) === e.target.value);
+            if (value !== undefined) onChange({ perPage: value satisfies PerPage });
+          }}
+        >
+          {PER_PAGE_OPTIONS.map((option) => (
+            <option key={option} value={String(option)}>
+              {option === "all" ? "All products" : `${option} per page`}
             </option>
           ))}
         </select>

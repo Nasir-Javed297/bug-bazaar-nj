@@ -111,6 +111,7 @@ Every commit starts with its task ID, for example `D3-2: add cart page`.
 - [`docs/decisions.md`](docs/decisions.md): what was chosen for each task, the alternatives, and why
 - [`docs/api-contract.md`](docs/api-contract.md): endpoints, types, status codes and how to trigger each error
 - [`docs/auth.md`](docs/auth.md): login flow, where the token is stored and the trade-off, 401 handling
+- [`docs/performance.md`](docs/performance.md): how the product list was measured, the two slowest spots and the fixes, before/after
 - [`docs/monitoring.md`](docs/monitoring.md): error boundary, error logging, and the three things to track in production
 - [`docs/typescript-cheatsheet.md`](docs/typescript-cheatsheet.md): every TypeScript pattern used here, with real examples
 - [`docs/ai-notes.md`](docs/ai-notes.md): how AI was used, including mistakes and how they were caught
