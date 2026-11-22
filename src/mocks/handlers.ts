@@ -213,6 +213,10 @@ export const handlers = [
         available: String(product.stock),
       });
     }
+    // Dev panel switch: the order IS saved, but the client never hears back (task D3-2).
+    if (getScenarios().loseOrderResponse) {
+      return apiError(500, "INTERNAL_ERROR", "The connection was interrupted.");
+    }
     return HttpResponse.json<Order>(result.order, { status: 201 });
   }),
 

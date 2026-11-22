@@ -67,6 +67,18 @@ const cartSlice = createSlice({
       state.items = state.items.filter((line) => line.quantity > 0);
     },
 
+    /**
+     * The server told us the real stock (e.g. a 409 at checkout). Update it and lower the
+     * quantity if needed; a line whose product sold out is removed.
+     */
+    stockUpdated(state, action: PayloadAction<{ productId: string; stock: number }>) {
+      const item = state.items.find((line) => line.productId === action.payload.productId);
+      if (!item) return;
+      item.stock = action.payload.stock;
+      item.quantity = clampQuantity(item.quantity, item.stock);
+      state.items = state.items.filter((line) => line.quantity > 0);
+    },
+
     itemRemoved(state, action: PayloadAction<string>) {
       state.items = state.items.filter((item) => item.productId !== action.payload);
     },
@@ -79,7 +91,8 @@ const cartSlice = createSlice({
 
 // createSlice generates an "action creator" for each reducer:
 // itemAdded({ product }) -> { type: "cart/itemAdded", payload: { product } }
-export const { itemAdded, quantityChanged, itemRemoved, cartCleared } = cartSlice.actions;
+export const { itemAdded, quantityChanged, stockUpdated, itemRemoved, cartCleared } =
+  cartSlice.actions;
 export const cartReducer = cartSlice.reducer;
 
 // ---------- Selectors: read and DERIVE values from the state ----------

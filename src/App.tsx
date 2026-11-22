@@ -2,7 +2,10 @@ import { Route, Routes } from "react-router-dom";
 import { DevPanel } from "./components/DevPanel";
 import { Header } from "./components/Header";
 import { config } from "./config";
+import { CartPage } from "./pages/CartPage";
+import { CheckoutPage } from "./pages/CheckoutPage";
 import { NotFound } from "./pages/NotFound";
+import { OrderConfirmationPage } from "./pages/OrderConfirmationPage";
 import { ProductDetailsPage } from "./pages/ProductDetailsPage";
 import { ProductListPage } from "./pages/ProductListPage";
 
@@ -18,6 +21,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={<ProductListPage />} />
           <Route path="/products/:id" element={<ProductDetailsPage />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/orders/:id" element={<OrderConfirmationPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

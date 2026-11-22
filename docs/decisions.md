@@ -224,3 +224,35 @@ Before, the app had three separate `useState` calls (`loading`, `error`, `bugs`)
 - _Storing `count` and `total` in the slice._ Rejected: two sources of truth. Every reducer would have to remember to update them.
 - _`createEntityAdapter` (items normalised by id)._ Good for large collections. A cart has a handful of lines, and a plain array is simpler to read and explain.
 - _Storing only `productId` + `quantity` and looking up products from the API cache._ The cart page would then depend on cache entries that may have expired. A small snapshot (name, price, image, stock) keeps it self-contained, and the server re-checks stock and price at checkout.
+
+## D3-2: Cart
+
+**Used:**
+
+- **Quantities can't exceed stock, enforced twice:** the cart reducer clamps every quantity to `0..stock` (D3-1), and the quantity picker is a `<select>` that only offers `1..stock`, so the UI can't even express an invalid quantity (no "0", "-3" or empty box).
+- **Survives a reload:** `store.ts` subscribes to the store and saves `state.cart` to localStorage whenever it changes (a reference check: immutable state means "changed" = "different object"). On start-up, `loadCart()` reads it back as `preloadedState`, validated by the `isCartState` type guard, so a tampered or old cart (e.g. `quantity: -5`) becomes an empty cart instead of a crash.
+- **Checkout** (`/checkout`) uses an RTK Query **mutation** (`createOrder`). The token is added once, in the base query, from `state.auth`. On success: go to `/orders/:id` and dispatch `cartCleared()`.
+- **No duplicate orders, two layers:**
+  1. The Place order button is disabled while a request is in flight (no double-click double-submit).
+  2. **Idempotency key:** the checkout page generates one `crypto.randomUUID()` per order attempt and sends it as `Idempotency-Key` on **every retry of that same order**. The server stores key → order and returns the existing order for a repeated key. This covers the case the button can't: the order was saved but the reply was lost, and the user retries. Rule: same request → same key. After a 409 the cart changes, so the next attempt gets a **new** key.
+- **409 names the item:** the error's `details` carry `productName` and `available`. The page shows "Sorry, only 1 of "Glow Debug Duck #42" is left. We've updated your cart…", and dispatches `stockUpdated` so the cart drops to the real stock (or removes a sold-out line). Raw server text is never shown.
+- **Order confirmation** (`/orders/:id`) polls `GET /orders/:id` every 2 s until the status is `completed`, then stops. RTK Query's `pollingInterval` timer is cleared automatically when the page closes.
+
+**Verified in the browser:**
+
+| Criterion             | Result                                                                                                                                                                                                                                       |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Quantities ≤ stock    | Picker offered exactly 1..11 for a product with 11 in stock                                                                                                                                                                                  |
+| Survives reload       | 3 × duck, $74.97 before and after a full reload; a tampered cart (quantity −5) loaded as empty                                                                                                                                               |
+| 409 names the item    | Another customer bought 10 of 11; placing 3 showed "Sorry, only 1 of "Glow Debug Duck #42" is left…" and the cart dropped to 1                                                                                                               |
+| No duplicate on retry | With **Checkout: order saved, reply lost (500)** on, the first attempt saved the order but showed an error. The retry sent the **same** key (`66ce68fc-…`), got the same order back, and the result was 1 new order and stock 1 → 0 (not −1) |
+| Polling stops         | Status went Processing → Confirmed, then 0 new requests in the next 6 s                                                                                                                                                                      |
+
+**Considered:**
+
+- _Disabling the button only._ Stops double-clicks, but not a retry after a lost reply. That's the case that causes real double charges.
+- _Deriving the key from the cart contents (a hash)._ Buying the same cart again tomorrow would reuse the key, and the server would return yesterday's order. A random key per attempt avoids that.
+- _Keeping the key across page reloads (e.g. stored with the cart)._ Would also cover "reply lost, then the user reloads and retries". Left out to keep the flow simple. The server-side idempotency is what makes adding it easy later.
+- _Number input with +/− buttons._ Familiar, but needs extra handling for empty or invalid input while typing. The `<select>` is accessible by default and can't be invalid.
+
+**Not yet:** logging in is done from the console in this task. The login page, protected routes and keeping the session after a reload come in D3-3.

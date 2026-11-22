@@ -1,11 +1,13 @@
 // The Redux store: one object holding all shared client state.
 //   state.api  -> server data cache (RTK Query): products, orders...
-//   state.cart -> the shopping cart (task D3-1)
+//   state.cart -> the shopping cart (task D3-1), saved to localStorage (task D3-2)
 //   state.auth -> the logged-in session (task D3-1 / D3-3)
 // Filters are NOT here: they live in the URL (task D2-2).
 import { configureStore } from "@reduxjs/toolkit";
 import { api } from "../api/apiSlice";
+import { writeStorage } from "../utils/storage";
 import { authReducer } from "./authSlice";
+import { CART_STORAGE_KEY, loadCart } from "./cartPersistence";
 import { cartReducer } from "./cartSlice";
 
 export const store = configureStore({
@@ -14,10 +16,23 @@ export const store = configureStore({
     cart: cartReducer,
     auth: authReducer,
   },
+  // Start with the cart saved before the last reload (validated; empty if missing or corrupt).
+  preloadedState: { cart: loadCart() },
   // RTK Query's middleware runs the requests, tracks subscriptions and expires the cache.
   // In development, configureStore also adds checks that throw if state is mutated outside a
   // reducer, or if something non-serializable (a function, a class instance) is put in state.
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(api.middleware),
+});
+
+// Save the cart whenever it changes. State is immutable, so "changed" simply means
+// "a different object" — a cheap reference check, no deep comparison needed.
+let previousCart = store.getState().cart;
+store.subscribe(() => {
+  const cart = store.getState().cart;
+  if (cart !== previousCart) {
+    previousCart = cart;
+    writeStorage(CART_STORAGE_KEY, cart);
+  }
 });
 
 // Types derived from the store itself, so they update automatically when slices are added.

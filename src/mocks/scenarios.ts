@@ -18,6 +18,11 @@ export type MockScenarios = {
    * Typing d, du, duc, duck: the answer for "d" arrives last (task D2-6).
    */
   outOfOrderSearch: boolean;
+  /**
+   * POST /api/orders SAVES the order, then replies 500 as if the reply was lost on the way.
+   * Retrying with the same Idempotency-Key must return the same order, not a second one.
+   */
+  loseOrderResponse: boolean;
 };
 
 export const DEFAULT_SCENARIOS: MockScenarios = {
@@ -27,6 +32,7 @@ export const DEFAULT_SCENARIOS: MockScenarios = {
   forceOutOfStock: false,
   slowNetwork: false,
   outOfOrderSearch: false,
+  loseOrderResponse: false,
 };
 
 export const SCENARIO_LABELS: Record<keyof MockScenarios, string> = {
@@ -36,6 +42,7 @@ export const SCENARIO_LABELS: Record<keyof MockScenarios, string> = {
   forceOutOfStock: "Checkout: item sold out (409)",
   slowNetwork: "Slow network (+2-4 s)",
   outOfOrderSearch: "Out-of-order search (short queries answer last)",
+  loseOrderResponse: "Checkout: order saved, reply lost (500)",
 };
 
 export const SCENARIOS_STORAGE_KEY = "bug-bazaar:mock-scenarios";

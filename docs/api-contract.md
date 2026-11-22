@@ -112,17 +112,19 @@ Everything above matches the shared contract. These additions don't break it:
 
 Open **🛠 Dev tools** (bottom-right corner of the app) for the switches. Switches are saved in `localStorage` and apply to the next request.
 
-| Endpoint                | Status | How to trigger it                                                           |
-| ----------------------- | ------ | --------------------------------------------------------------------------- |
-| `GET /api/products`     | 500    | Dev tools → **Product list fails (500)**                                    |
-| `GET /api/products/:id` | 404    | Open a product URL that doesn't exist, e.g. `/products/nope`                |
-| `POST /api/login`       | 400    | Submit with an empty or invalid email, or an empty password                 |
-| `POST /api/login`       | 401    | Use a wrong password                                                        |
-| `GET /api/me`           | 401    | Call it logged out, or Dev tools → **Session expired**                      |
-| `POST /api/orders`      | 400    | Send an empty cart or a quantity of 0                                       |
-| `POST /api/orders`      | 401    | Check out while logged out, or Dev tools → **Session expired**              |
-| `POST /api/orders`      | 409    | Order more than the stock, or Dev tools → **Checkout: item sold out (409)** |
-| `GET /api/orders/:id`   | 401    | Call it logged out, or Dev tools → **Session expired**                      |
-| `GET /api/orders/:id`   | 404    | Open an order id that doesn't exist                                         |
-| any                     | 500    | Dev tools → **Server outage** (tests the retry button anywhere)             |
-| any                     | slow   | Dev tools → **Slow network** (+2-4 s, to see loading states)                |
+| Endpoint                | Status | How to trigger it                                                                                                                |
+| ----------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/products`     | 500    | Dev tools → **Product list fails (500)**                                                                                         |
+| `GET /api/products/:id` | 404    | Open a product URL that doesn't exist, e.g. `/products/nope`                                                                     |
+| `POST /api/login`       | 400    | Submit with an empty or invalid email, or an empty password                                                                      |
+| `POST /api/login`       | 401    | Use a wrong password                                                                                                             |
+| `GET /api/me`           | 401    | Call it logged out, or Dev tools → **Session expired**                                                                           |
+| `POST /api/orders`      | 400    | Send an empty cart or a quantity of 0                                                                                            |
+| `POST /api/orders`      | 401    | Check out while logged out, or Dev tools → **Session expired**                                                                   |
+| `POST /api/orders`      | 409    | Order more than the stock, or Dev tools → **Checkout: item sold out (409)**                                                      |
+| `GET /api/orders/:id`   | 401    | Call it logged out, or Dev tools → **Session expired**                                                                           |
+| `GET /api/orders/:id`   | 404    | Open an order id that doesn't exist                                                                                              |
+| any                     | 500    | Dev tools → **Server outage** (tests the retry button anywhere)                                                                  |
+| `POST /api/orders`      | 500    | Dev tools → **Checkout: order saved, reply lost (500)**: the order IS saved; retrying with the same `Idempotency-Key` returns it |
+| `GET /api/products`     | order  | Dev tools → **Out-of-order search**: shorter searches reply later (race-condition test, D2-6)                                    |
+| any                     | slow   | Dev tools → **Slow network** (+2-4 s, to see loading states)                                                                     |
