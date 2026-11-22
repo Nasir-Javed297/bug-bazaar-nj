@@ -32,19 +32,20 @@ The app talks to a mock backend built with [MSW](https://mswjs.io/), which inter
 
 ## Scripts
 
-| Command                | What it does                                                      |
-| ---------------------- | ----------------------------------------------------------------- |
-| `npm run dev`          | Start the dev server with hot reload                              |
-| `npm run build`        | Type-check, then build a production bundle into `dist/`           |
-| `npm run preview`      | Serve the production build locally (run `build` first)            |
-| `npm run typecheck`    | Run the TypeScript compiler in strict mode, without output        |
-| `npm run lint`         | Run ESLint (bugs, hooks rules, no `any`, no `@ts-ignore`)         |
-| `npm run lint:fix`     | Run ESLint and auto-fix what it can                               |
-| `npm run format`       | Format every file with Prettier                                   |
-| `npm run format:check` | Check formatting without changing files                           |
-| `npm test`             | Run all tests once (Vitest)                                       |
-| `npm run test:watch`   | Re-run tests as you edit files                                    |
-| `npm run check`        | Typecheck + lint + format check + tests: run this before you push |
+| Command                | What it does                                                                                            |
+| ---------------------- | ------------------------------------------------------------------------------------------------------- |
+| `npm run dev`          | Start the dev server with hot reload                                                                    |
+| `npm run build`        | Type-check, then build a production bundle into `dist/`                                                 |
+| `npm run preview`      | Serve the production build locally (run `build` first)                                                  |
+| `npm run typecheck`    | Run the TypeScript compiler in strict mode, without output                                              |
+| `npm run lint`         | Run ESLint (bugs, hooks rules, no `any`, no `@ts-ignore`)                                               |
+| `npm run lint:fix`     | Run ESLint and auto-fix what it can                                                                     |
+| `npm run format`       | Format every file with Prettier                                                                         |
+| `npm run format:check` | Check formatting without changing files                                                                 |
+| `npm test`             | Run all tests once (Vitest)                                                                             |
+| `npm run test:watch`   | Re-run tests as you edit files                                                                          |
+| `npm run check`        | Typecheck + lint + format check + tests: run this before you push                                       |
+| `npm run a11y`         | Build, then run a Lighthouse accessibility audit of home, cart and login (needs Chrome; fails below 90) |
 
 ## Environment variables
 
@@ -81,6 +82,10 @@ src/
 - **Real requests:** the app's `fetch` calls go through the **same MSW handlers** as the browser mock (`msw/node`), so the data layer is tested for real.
 - **Covered:** cart rules, custom hooks, filtering and URL state, login (redirect back, wrong password, double submit, 401), checkout (success, **409**, no duplicate order on retry), error mapping, UI states, the error boundary.
 - Test files sit next to the code they test (`*.test.ts`); app-level tests and helpers are in `src/test/`.
+
+## Accessibility
+
+Lighthouse accessibility is **100** on home, cart and login (`npm run a11y`). The app works with a keyboard alone and with a screen reader: a skip link, visible focus, a title per page, focus moved to the content after navigating, labelled controls, errors in `role="alert"` regions with focus on the first invalid field, and announcements for loading and result counts. Details: [`docs/decisions.md`](docs/decisions.md#d4-1-accessibility).
 
 ## Continuous integration
 

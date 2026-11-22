@@ -12,6 +12,7 @@ import { QueryStateView } from "../components/QueryStateView";
 import { RelatedProducts } from "../components/RelatedProducts";
 import { StockBadge } from "../components/StockBadge";
 import { useCancelProductRequestOnLeave } from "../hooks/useCancelProductRequestOnLeave";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { formatPrice } from "../utils/formatPrice";
 import { getFromPath } from "../utils/navigation";
 
@@ -30,6 +31,8 @@ export function ProductDetailsPage() {
   // skipToken = "don't fetch". Avoids requesting /api/products/undefined.
   const result = useGetProductQuery(id ?? skipToken);
   const state = toRequestState(result);
+  const isMissing = state.status === "error" && state.error.status === 404;
+  useDocumentTitle(result.currentData?.name ?? (isMissing ? "Product not found" : "Product"));
 
   // Task D2-4: leaving this product (switching or closing the page) cancels its request.
   useCancelProductRequestOnLeave(id);
@@ -57,6 +60,7 @@ export function ProductDetailsPage() {
           message: "This product doesn't exist or is no longer available.",
         }}
         onRetry={() => void result.refetch()}
+        headingLevel={1}
       >
         {(product) => (
           <>

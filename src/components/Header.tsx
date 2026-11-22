@@ -12,7 +12,6 @@ export function Header() {
   const user = useAppSelector(selectCurrentUser);
   const location = useLocation();
   const logout = useLogout();
-  const cartLabel = `Cart, ${cartCount} ${cartCount === 1 ? "item" : "items"}`;
 
   return (
     <header className="site-header">
@@ -39,14 +38,17 @@ export function Header() {
             Log in
           </Link>
         )}
-        {/* aria-label: a screen reader says "Cart, 3 items" instead of "Cart 3". */}
-        <Link to="/cart" className="cart-link" aria-label={cartLabel}>
-          <span aria-hidden="true">🛒</span> Cart
-          {cartCount > 0 && (
-            <span className="cart-badge" aria-hidden="true">
-              {cartCount}
-            </span>
+        {/* Accessible name = what's on screen + a hidden word: "Cart 3 items" (or "Cart 0 items").
+            It must CONTAIN the visible text, so voice-control users can say "click Cart 3"
+            (WCAG 2.5.3 "Label in Name"). An aria-label like "Cart, 3 items" broke that. */}
+        <Link to="/cart" className="cart-link">
+          <span aria-hidden="true">🛒</span> Cart{" "}
+          {cartCount > 0 ? (
+            <span className="cart-badge">{cartCount}</span>
+          ) : (
+            <span className="visually-hidden">0</span>
           )}
+          <span className="visually-hidden"> {cartCount === 1 ? "item" : "items"}</span>
         </Link>
       </nav>
     </header>

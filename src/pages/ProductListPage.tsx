@@ -11,6 +11,7 @@ import { ProductGrid } from "../components/ProductGrid";
 import { QueryStateView } from "../components/QueryStateView";
 import { EmptyState } from "../components/StatusViews";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useProductFilters } from "../hooks/useProductFilters";
 import { DEFAULT_PAGE_SIZE, type ProductsResponse } from "../types/api";
 import type { RequestState } from "../types/request";
@@ -20,6 +21,7 @@ const SEARCH_DEBOUNCE_MS = 300;
 
 export function ProductListPage() {
   const { filters, updateFilters, clearFilters, hasActiveFilters } = useProductFilters();
+  useDocumentTitle(filters.search ? `Search: ${filters.search}` : "Shop developer gear");
 
   // The search box (and URL) update on every keystroke; the REQUEST waits until typing pauses.
   // Typing "keyboard" = 1 request instead of 8.

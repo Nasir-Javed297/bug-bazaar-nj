@@ -418,3 +418,34 @@ Stale data is fine when **being slightly out of date can't cause a wrong outcome
 - _Running checks only locally (`npm run check`) or with a pre-commit hook._ Useful, but anyone can skip them. CI runs on GitHub's machines for every PR and can't be skipped.
 - _A matrix over Node 20/22/24._ More coverage, but 3× the minutes. `engines` says ≥ 20, and Node 22 is the LTS version we develop against.
 - _Rulesets instead of a classic branch protection rule._ Newer and more flexible. The classic rule does exactly what we need with fewer settings.
+
+## D4-1: Accessibility
+
+**Measured with two tools, both built on the axe engine:**
+
+- **Lighthouse** (`npm run a11y`, `scripts/a11y.mjs`) audits the **production build** of the three required pages in headless Chrome and fails if any page is below 90. Result: **home 100, cart 100, login 100**, before and after the changes below.
+- **axe-core in the browser** on **12 states Lighthouse never sees** (it loads each page fresh: empty cart, untouched form): filtered results, no results, product + related, cart with items, login with field errors, account, checkout 409 alert, order confirmation, error state, 404, Dev panel open.
+
+**What axe found that Lighthouse missed (all fixed, now 0 violations in all 12 states):**
+
+| Issue                                   | Where                                                               | Fix                                                                                                                                                           |
+| --------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label-content-name-mismatch` (serious) | Cart link once it has items: visible "Cart 3", name "Cart, 3 items" | No `aria-label` override. The name is the visible text plus a visually hidden word, "Cart 3 items", so voice-control users can say what they see (WCAG 2.5.3) |
+| `page-has-heading-one`                  | Product page error state                                            | `ErrorState`/`EmptyState` take `headingLevel`. One-item pages use `1`                                                                                         |
+| `region`                                | Dev panel outside any landmark                                      | Wrapped in `<aside aria-label="Developer tools">`                                                                                                             |
+
+**What automated tools can't check, done by design and verified by hand:**
+
+- **Skip link** as the first Tab stop (verified with real keys: Tab → "Skip to main content" visible, Enter → focus on `main`, next Tab → "Search products").
+- **A title per page** (`useDocumentTitle`): "Your cart · The Bug Bazaar", "Glow Debug Duck #42 · …", "Product not found · …".
+- **Focus moves to `<main>` after navigating to another page** (only when the path changes, so typing in the search box isn't interrupted).
+- **Form errors are announced:** the summary is in `role="alert"`, and it gets a new `key` on every attempt, so a repeated identical error is announced again. Focus moves to the first invalid field, which has `aria-invalid` and its error as `aria-describedby`, so a screen reader reads "Email, invalid entry, Email is required".
+- Already in place from earlier tasks: real `<label>`s, one Tab stop per product card with a visible focus outline, `role="status"` for loading and result counts, `role="alert"` for errors, alt text, a reduced-motion spinner, a keyboard-usable quantity `<select>`, and Back to Top moving focus to `main`.
+
+**Protected by tests** (`src/test/accessibility.test.tsx`): errors in an alert, focus on the invalid field, `toHaveAccessibleDescription`, a repeated error creating a new alert, per-page title, and the cart link's accessible name.
+
+**Considered:**
+
+- _Stopping at the first 100._ The score only covered three fresh page loads. Auditing more states found three real problems.
+- _`aria-live` on the whole form._ Too noisy: every change would be read out. A targeted `role="alert"` plus focus management says exactly what's wrong and where.
+- _An "announcer" component reading out every route change._ Moving focus to `main` plus a unique page title gives screen readers the same information with less code.

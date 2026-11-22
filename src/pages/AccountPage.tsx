@@ -4,11 +4,13 @@
 import { useGetMeQuery } from "../api/apiSlice";
 import { toRequestState } from "../api/requestState";
 import { QueryStateView } from "../components/QueryStateView";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useLogout } from "../hooks/useLogout";
 
 export function AccountPage() {
   const result = useGetMeQuery();
   const logout = useLogout();
+  useDocumentTitle("Your account");
 
   return (
     <div className="page">

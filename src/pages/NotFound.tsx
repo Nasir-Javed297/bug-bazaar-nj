@@ -1,6 +1,7 @@
 // "Not found": for unknown URLs (route "*") and for API 404s (a product or order that doesn't
 // exist). NotFoundMessage is the content, usable inside another page; NotFound is a whole page.
 import { Link } from "react-router-dom";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 
 type NotFoundProps = {
   title?: string;
@@ -24,6 +25,7 @@ export function NotFoundMessage({
 }
 
 export function NotFound(props: NotFoundProps) {
+  useDocumentTitle(props.title ?? "Page not found");
   return (
     <div className="page">
       <NotFoundMessage {...props} />

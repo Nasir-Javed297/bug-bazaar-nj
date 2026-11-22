@@ -36,33 +36,36 @@ export function DevPanel() {
   const keys = Object.keys(SCENARIO_LABELS) as (keyof MockScenarios)[];
 
   return (
-    <details className="dev-panel">
-      <summary>🛠 Dev tools{activeCount > 0 ? ` (${activeCount} on)` : ""}</summary>
-      <fieldset>
-        <legend>Mock API: force errors</legend>
-        {keys.map((key) => (
-          <label key={key} className="dev-panel-option">
-            <input type="checkbox" checked={scenarios[key]} onChange={() => toggle(key)} />
-            {SCENARIO_LABELS[key]}
-          </label>
-        ))}
-      </fieldset>
-      <p className="dev-panel-hint">
-        Switches apply to the next request (retry or refresh). Other errors happen naturally: wrong
-        password → 401, empty login field → 400, unknown product URL → 404, ordering more than the
-        stock → 409.
-      </p>
-      <button
-        type="button"
-        onClick={() => {
-          resetMockDatabase();
-          window.location.reload();
-        }}
-      >
-        Reset orders and stock
-      </button>
-      <ErrorTools />
-    </details>
+    // <aside> = a landmark, so screen-reader users navigating by region can find (or skip) it.
+    <aside aria-label="Developer tools">
+      <details className="dev-panel">
+        <summary>🛠 Dev tools{activeCount > 0 ? ` (${activeCount} on)` : ""}</summary>
+        <fieldset>
+          <legend>Mock API: force errors</legend>
+          {keys.map((key) => (
+            <label key={key} className="dev-panel-option">
+              <input type="checkbox" checked={scenarios[key]} onChange={() => toggle(key)} />
+              {SCENARIO_LABELS[key]}
+            </label>
+          ))}
+        </fieldset>
+        <p className="dev-panel-hint">
+          Switches apply to the next request (retry or refresh). Other errors happen naturally:
+          wrong password → 401, empty login field → 400, unknown product URL → 404, ordering more
+          than the stock → 409.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            resetMockDatabase();
+            window.location.reload();
+          }}
+        >
+          Reset orders and stock
+        </button>
+        <ErrorTools />
+      </details>
+    </aside>
   );
 }
 

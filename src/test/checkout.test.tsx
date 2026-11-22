@@ -22,7 +22,7 @@ describe("checkout", () => {
       await screen.findByRole("heading", { name: "Thank you for your order!" }),
     ).toBeInTheDocument();
     expect(store.getState().cart.items).toHaveLength(0);
-    expect(screen.getByRole("link", { name: "Cart, 0 items" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Cart 0 items" })).toBeInTheDocument();
     expect(stockOf("p-0200")).toBe(stockBefore - 2);
   });
 

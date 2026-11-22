@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { DevPanel } from "./components/DevPanel";
 import { ErrorBoundary } from "./components/ErrorBoundary";
@@ -20,8 +21,24 @@ import { ProductListPage } from "./pages/ProductListPage";
 export default function App() {
   const location = useLocation();
 
+  // Task D4-1: after navigating to another PAGE, move keyboard focus to the main content.
+  // Without this, a single-page app changes the screen silently: focus stays on the old link
+  // and screen readers announce nothing. Only the path counts: changing a filter (?search=…)
+  // must not pull focus away from the search box being typed in. The ref skips the first
+  // render (and React's StrictMode re-run), so the initial page load doesn't move focus.
+  const previousPath = useRef(location.pathname);
+  useEffect(() => {
+    if (previousPath.current === location.pathname) return;
+    previousPath.current = location.pathname;
+    document.getElementById("main-content")?.focus({ preventScroll: true });
+  }, [location.pathname]);
+
   return (
     <>
+      {/* First Tab stop on every page: lets keyboard users jump past the header. */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
       <Header />
       {/* tabIndex={-1}: can receive focus from code (e.g. Back to top) without being a Tab stop. */}
       <main id="main-content" tabIndex={-1}>

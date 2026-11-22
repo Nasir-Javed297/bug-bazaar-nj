@@ -4,11 +4,13 @@ import { Link } from "react-router-dom";
 import { CartLine } from "../components/CartLine";
 import { OrderSummary } from "../components/OrderSummary";
 import { EmptyState } from "../components/StatusViews";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { selectCartItems } from "../store/cartSlice";
 import { useAppSelector } from "../store/hooks";
 
 export function CartPage() {
   const items = useAppSelector(selectCartItems);
+  useDocumentTitle("Your cart");
 
   return (
     <div className="page">

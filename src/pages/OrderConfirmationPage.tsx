@@ -6,6 +6,7 @@ import { Link, useParams } from "react-router-dom";
 import { api, useGetOrderQuery } from "../api/apiSlice";
 import { toRequestState } from "../api/requestState";
 import { QueryStateView } from "../components/QueryStateView";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useAppSelector } from "../store/hooks";
 import type { OrderStatus } from "../types/api";
 
@@ -37,6 +38,7 @@ export function OrderConfirmationPage() {
     pollingInterval: cachedStatus === "completed" || lastPollFailed ? 0 : POLL_EVERY_MS,
   });
   const state = toRequestState(result);
+  useDocumentTitle("Order confirmation");
 
   return (
     <div className="page">
@@ -46,6 +48,7 @@ export function OrderConfirmationPage() {
         errorTitle="We couldn't load your order"
         notFound={{ title: "Order not found", message: "We couldn't find that order." }}
         onRetry={() => void result.refetch()}
+        headingLevel={1}
       >
         {(order) => {
           const currentStep = STEPS.findIndex((step) => step.status === order.status);

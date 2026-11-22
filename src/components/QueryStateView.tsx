@@ -6,7 +6,7 @@ import type { ClientError } from "../api/client";
 import { describeError } from "../api/errorMessages";
 import { NotFoundMessage } from "../pages/NotFound";
 import type { RequestState } from "../types/request";
-import { EmptyState, ErrorState, LoadingState } from "./StatusViews";
+import { EmptyState, ErrorState, LoadingState, type HeadingLevel } from "./StatusViews";
 
 // <T> = the type of the data (a Product, a ProductsResponse...), filled in by each page.
 type QueryStateViewProps<T> = {
@@ -14,6 +14,8 @@ type QueryStateViewProps<T> = {
   loadingLabel: string;
   errorTitle: string;
   onRetry: () => void;
+  /** 1 when the state IS the page (one product, one order), so the page still has an <h1>. */
+  headingLevel?: HeadingLevel;
   /**
    * For pages about ONE thing (a product, an order): on a 404, show a Not Found view with
    * these words instead of an error. Retrying can't make a missing thing appear.
@@ -33,6 +35,7 @@ export function QueryStateView<T>({
   errorTitle,
   onRetry,
   notFound,
+  headingLevel = 2,
   isEmpty,
   renderEmpty,
   children,
@@ -46,11 +49,22 @@ export function QueryStateView<T>({
       if (notFound && describeError(state.error).kind === "notFound") {
         return <NotFoundMessage title={notFound.title} message={notFound.message} />;
       }
-      return <ErrorState title={errorTitle} error={state.error} onRetry={onRetry} />;
+      return (
+        <ErrorState
+          title={errorTitle}
+          error={state.error}
+          onRetry={onRetry}
+          headingLevel={headingLevel}
+        />
+      );
 
     case "success":
       if (isEmpty?.(state.data)) {
-        return renderEmpty ? renderEmpty(state.data) : <EmptyState title="Nothing to show" />;
+        return renderEmpty ? (
+          renderEmpty(state.data)
+        ) : (
+          <EmptyState title="Nothing to show" headingLevel={headingLevel} />
+        );
       }
       return children(state.data);
   }

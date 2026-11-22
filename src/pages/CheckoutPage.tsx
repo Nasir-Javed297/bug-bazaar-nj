@@ -12,6 +12,7 @@ import { describeError, type UserError } from "../api/errorMessages";
 import { toClientError } from "../api/requestState";
 import { OrderSummary } from "../components/OrderSummary";
 import { EmptyState } from "../components/StatusViews";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { cartCleared, selectCartItems, stockUpdated } from "../store/cartSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { formatPrice } from "../utils/formatPrice";
@@ -44,10 +45,13 @@ export function CheckoutPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [createOrder, { isLoading }] = useCreateOrderMutation();
+  useDocumentTitle("Checkout");
 
   // One key per order attempt, kept across retries (lazy initial state: generated once).
   const [idempotencyKey, setIdempotencyKey] = useState(newIdempotencyKey);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  // Changes on every failed attempt, so the alert is re-created and announced again (task D4-1).
+  const [attempt, setAttempt] = useState(0);
 
   const placeOrder = async () => {
     setErrorMessage(null);
@@ -62,6 +66,7 @@ export function CheckoutPage() {
     } catch (err: unknown) {
       const userError = describeError(toClientError(err));
       setErrorMessage(checkoutMessage(userError));
+      setAttempt((count) => count + 1);
 
       if (userError.kind === "outOfStock" && userError.productId) {
         // Apply the real stock to the cart. The cart has changed, so it's a different order
@@ -96,7 +101,7 @@ export function CheckoutPage() {
 
       {errorMessage && (
         // role="alert": the error is announced immediately by screen readers.
-        <div className="alert alert--error" role="alert">
+        <div key={attempt} className="alert alert--error" role="alert">
           <p>{errorMessage}</p>
           {items.length > 0 && <Link to="/cart">Review your cart</Link>}
         </div>

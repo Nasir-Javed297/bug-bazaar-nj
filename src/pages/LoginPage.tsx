@@ -4,12 +4,13 @@
 // 1. A ref flag, checked first thing in handleSubmit. Refs update IMMEDIATELY, while state
 //    (and the disabled button) only updates on the next render.
 // 2. The button is disabled and says "Logging in…" while the request runs.
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useLoginMutation } from "../api/apiSlice";
 import { describeError } from "../api/errorMessages";
 import { toClientError } from "../api/requestState";
 import { config } from "../config";
+import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { loggedIn, selectIsLoggedIn, selectLogoutReason } from "../store/authSlice";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import { getFromPath } from "../utils/navigation";
@@ -23,12 +24,25 @@ export function LoginPage() {
   const isLoggedIn = useAppSelector(selectIsLoggedIn);
   const logoutReason = useAppSelector(selectLogoutReason);
   const [login, { isLoading }] = useLoginMutation();
+  useDocumentTitle("Log in");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
+  // Changes on every failed attempt, so the error alert is re-created and announced again,
+  // even when the text is the same (screen readers don't repeat an unchanged alert).
+  const [attempt, setAttempt] = useState(0);
   const isSubmitting = useRef(false);
+  const emailInput = useRef<HTMLInputElement>(null);
+  const passwordInput = useRef<HTMLInputElement>(null);
+
+  // After field errors appear, move focus to the first invalid field: a screen reader then reads
+  // its label AND its error (aria-describedby), and the user is where they need to type.
+  useEffect(() => {
+    if (fieldErrors.email) emailInput.current?.focus();
+    else if (fieldErrors.password) passwordInput.current?.focus();
+  }, [fieldErrors]);
 
   // Where to go after logging in. Never back to /login itself.
   const fromPath = getFromPath(location.state);
@@ -60,6 +74,7 @@ export function LoginPage() {
         });
       }
       setFormError(userError.message);
+      setAttempt((count) => count + 1);
     } finally {
       isSubmitting.current = false;
     }
@@ -77,8 +92,8 @@ export function LoginPage() {
         )}
 
         {formError && (
-          // role="alert": announced immediately by screen readers.
-          <p className="alert alert--error" role="alert">
+          // role="alert": announced immediately by screen readers. key: a fresh alert per attempt.
+          <p key={attempt} className="alert alert--error" role="alert">
             {formError}
           </p>
         )}
@@ -86,6 +101,7 @@ export function LoginPage() {
         <div className="form-field">
           <label htmlFor="login-email">Email</label>
           <input
+            ref={emailInput}
             id="login-email"
             type="email"
             autoComplete="email"
@@ -104,6 +120,7 @@ export function LoginPage() {
         <div className="form-field">
           <label htmlFor="login-password">Password</label>
           <input
+            ref={passwordInput}
             id="login-password"
             type="password"
             autoComplete="current-password"
