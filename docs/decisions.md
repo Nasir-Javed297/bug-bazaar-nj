@@ -338,3 +338,17 @@ Stale data is fine when **being slightly out of date can't cause a wrong outcome
 - _No caching (`refetchOnMountOrArgChange: true` everywhere)._ Always fresh, but every Back/forward costs a request and a loading spinner, which is exactly what this task asks us to avoid.
 - _Invalidating all products after any order (one `LIST` tag)._ Simpler, but it refetches every cached list and page, even for products we didn't buy. Per-product tags refetch only what changed.
 - _`refetchOnFocus` / polling for stock._ Considered for stock freshness. Live stock is D4-4's job (a push-based feed), so the cache doesn't need to poll.
+
+## D4-7: Monitoring
+
+**Used:** a hand-written `ErrorBoundary` class (two of them: one around the page area, keyed by path so navigation resets it, and a last-resort one around the whole app), global `error` / `unhandledrejection` listeners, and one `logError` function (`src/monitoring/logger.ts`) that every source goes through. Details, plus the three things I'd track, are in [`docs/monitoring.md`](monitoring.md).
+
+**Verified (dev server and production build):** _Crash a page_ → fallback with an error reference, header still usable, 1 `render` log entry with the component stack. Navigating away → page works. _Try again_ while the bug is still there → the fallback returns with a new reference. Event-handler error and unhandled promise → no fallback (by design), each logged once (`window`, `promise`).
+
+**Problem found while testing:** in development one crash first produced 3 entries (React's dev mode re-reports errors through `window` and retries the render). Added a 1-second dedupe of identical errors.
+
+**Considered:**
+
+- _`react-error-boundary` (library)._ Good API (`resetKeys`, `useErrorBoundary` for async errors). The class is about 40 lines, though, and writing it shows why boundaries must be classes and what they can't catch.
+- _One boundary around the whole app._ Simpler, but any page crash would take the header with it, so the user couldn't even reach the cart. Page-level plus app-level gives graceful degradation.
+- _Showing `error.message` on the fallback._ Never: it's developer text and may leak internals. The reference id links the user's report to the log entry instead.

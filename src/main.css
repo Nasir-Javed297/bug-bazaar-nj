@@ -779,3 +779,24 @@ img {
 .account dd {
   margin: 0;
 }
+
+/* ---------- Error boundary fallback + Dev panel error tools (D4-7) ---------- */
+.state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.dev-panel-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dev-panel-log {
+  margin: 0 0 8px;
+  padding-left: 18px;
+  color: #d1d5db;
+  font-size: 0.75rem;
+}
