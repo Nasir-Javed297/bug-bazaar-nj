@@ -507,3 +507,15 @@ Full table with every optimization and its justification: [`docs/performance.md`
 **Defended choice:** filters live in the URL, so links, Back and reload all work, with validation because the URL is user input.
 
 **Checked against the code:** every file, setting and status code in the doc was checked against the source (this caught two mistakes in the first draft: a repeated idempotency key returns 201 with the same order, not 200, and only the Dev panel switches use `useLocalStorage`).
+
+## D5-2: Design patterns
+
+**Documented in** [`docs/ARCHITECTURE.md`](ARCHITECTURE.md#6-design-patterns), each with where it's used and why:
+
+1. **Container / presentational components:** pages fetch and decide, components like `ProductGrid`, `StockBadge` and `Pagination` only take props. This made `ProductGrid` reusable for related products and made `React.memo` effective (D4-3). Noted where the split is deliberately not pure (`ProductCard` reads the location, `CartLine` dispatches).
+2. **Custom hooks:** `useProductFilters`, `useDebouncedValue`, `useLocalStorage`, `useLiveStock` and others keep setup and cleanup together and are testable alone.
+3. **Adapter:** `toRequestState`, `describeError` and `apiRequest` turn library and server shapes into our own unions, so impossible states can't be represented and server wording never reaches the UI.
+
+Also named: render prop (`QueryStateView`), network facade enforced by ESLint, idempotency key, error boundary.
+
+**Why these three:** they're the ones that appear in almost every file a reviewer opens. Each claim in the section (who uses what, which tests exist, what the compiler checks) was checked against the code; two overstatements in the draft were corrected.

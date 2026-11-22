@@ -192,3 +192,71 @@ The page tells the server which products it shows. Updates are written straight 
 - **Default values are left out** of the URL so links stay short (`/` instead of `/?page=1&sort=relevance`).
 
 **Alternative rejected:** Redux for filters. It would make them easy to read anywhere, but loses links, Back and reload, and I'd need to sync it with the URL anyway.
+
+## 6. Design patterns
+
+Three patterns that shape most of the code, where each one is used, and why.
+
+### Pattern 1: Container and presentational components
+
+**What it is:** split a screen into two kinds of components. A **container** gets the data (hooks, store, URL) and decides what to show. A **presentational** component only receives props and returns markup. It doesn't know where the data came from.
+
+**Where it's used:**
+
+| Containers (fetch, decide)                                                                                     | Presentational (props in, markup out)                                                         |
+| -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `pages/ProductListPage.tsx`: reads filters from the URL, calls `useGetProductsQuery`, subscribes to live stock | `components/ProductGrid.tsx`: gets `products`, lays them out (and virtualizes big lists)      |
+| `pages/ProductDetailsPage.tsx`: reads `:id`, fetches the product                                               | `components/StockBadge.tsx`: gets `stock`, shows "In stock" / "Only 3 left" / "Sold out"      |
+| `pages/CartPage.tsx`, `pages/CheckoutPage.tsx`: read the cart, place the order                                 | `components/Pagination.tsx`, `components/FiltersBar.tsx`: get values + an `onChange` callback |
+
+**Why:**
+
+- **Easy to reason about.** All the "where does the data come from?" logic for a screen is in one file: its page.
+- **Reusable.** `ProductGrid` shows the main list and also the "More from this category" list (`RelatedProducts`), because it doesn't care which query filled it.
+- **Easy to optimize.** Because `ProductCard` only depends on its props, `React.memo` can skip re-rendering the 23 cards that didn't change when one card's stock updates (D4-3).
+
+**Being honest about the edges:** the split isn't 100% pure. `ProductCard` reads `useLocation` (to pass the current list URL as `from`), and `CartLine` dispatches cart actions directly. Passing those down as props from the page would have added a lot of prop drilling for no real gain, so small components are allowed to use a hook when it's about _their own_ job.
+
+### Pattern 2: Custom hooks (reusable logic without markup)
+
+**What it is:** a function whose name starts with `use` that combines React hooks (`useState`, `useEffect`, ...) into one reusable piece of behaviour. Components call it like a built-in hook.
+
+**Where it's used** (`src/hooks/`):
+
+| Hook                             | What it hides                                                         | Used by                                                       |
+| -------------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `useProductFilters`              | Reading, validating and writing filters in the URL                    | `ProductListPage`                                             |
+| `useDebouncedValue`              | A timer that waits until the value stops changing                     | `ProductListPage` (search)                                    |
+| `useLocalStorage`                | `useState` + saving + syncing between tabs (`storage` event)          | `DevPanel`                                                    |
+| `useLiveStock`                   | Opening the WebSocket, re-subscribing, closing on leave               | List and details pages                                        |
+| `useCancelProductRequestOnLeave` | Aborting the request when the product changes or the page closes      | `ProductDetailsPage`                                          |
+| `useDocumentTitle`, `useLogout`  | Setting the tab title; logging out + clearing the cache + redirecting | Every page except the dev crash page; `Header`, `AccountPage` |
+
+**Why:**
+
+- **Pages read like a description.** `const { filters, updateFilters } = useProductFilters()` tells you _what_ happens; the URL parsing lives elsewhere.
+- **Cleanup is written once.** Effects that subscribe to something (timer, socket, listener) must undo it. Inside a hook the setup and its cleanup sit side by side, so no page can forget to close the socket.
+- **Testable on their own.** `useDebouncedValue` and `useLocalStorage` have unit tests with `renderHook`, and the URL rules of `useProductFilters` (`parseFilters`, `filtersToParams`) are tested as plain functions, all without rendering a page.
+
+### Pattern 3: Adapter (convert outside shapes into our own types)
+
+**What it is:** a small function that converts something we don't control (a library's result, a server's error) into a shape our code is designed around. The rest of the app only knows the adapted shape.
+
+**Where it's used:**
+
+1. **`toRequestState()`** in `src/api/requestState.ts`: RTK Query gives a result with several booleans (`isLoading`, `isFetching`, `isError`, `isUninitialized`) plus `data`, `currentData` and `error`. The adapter turns that into our `RequestState` union: exactly one of `idle | loading | success | error`. It also decides that a request _we_ cancelled counts as "loading", not an error.
+2. **`describeError()`** in `src/api/errorMessages.ts`: turns a technical `ClientError` (`409 OUT_OF_STOCK, "Insufficient stock for p-0042: requested 5, available 2"`) into a `UserError` a shopper understands (`Sorry, only 2 of "Rubber Duck" are left.`), with a `kind` that tells the UI which button to show (Retry, Log in, Go back).
+3. **`apiRequest()`** in `src/api/client.ts`: adapts `fetch` (which throws on network errors but _not_ on 404/500, and may return non-JSON) into one `ApiResult<T>` that never throws.
+
+**Why:**
+
+- **Impossible states can't happen.** With four separate booleans you could have `isLoading` and `isError` both true. With one `status` (or `kind`) field there's one `switch`, and TypeScript narrows the type in each case: `data` only exists under `"success"`. Where the function declares its return type, a missing case is a compile error: `checkoutMessage(userError): string` in `CheckoutPage.tsx` won't build if a new `UserError` kind is added and not handled.
+- **One place to change.** If we swapped RTK Query for another library, `apiSlice.ts` and `toRequestState` would change and pages would call a different hook, but `QueryStateView`, `StatusViews` and every success view wouldn't notice.
+- **Server wording stays out of the UI.** Error messages are written for shoppers in one file, instead of each page showing whatever text the server sent.
+
+### Other patterns worth naming (smaller)
+
+- **Render prop:** `QueryStateView`'s `children` is a function `(data) => ReactNode`, called only on success with typed data.
+- **Single entry point (facade) for the network:** only `src/api/` may call `fetch`, enforced by ESLint.
+- **Idempotency key:** one key per checkout attempt, reused on retry, so the server can't create the order twice (see section 3b).
+- **Error boundary:** a class component that catches render errors around the page area and shows a fallback instead of a blank screen (`components/ErrorBoundary.tsx`).
