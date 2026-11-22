@@ -87,6 +87,7 @@ Every commit starts with its task ID, for example `D3-2: add cart page`.
 
 - [`docs/decisions.md`](docs/decisions.md): what was chosen for each task, the alternatives, and why
 - [`docs/api-contract.md`](docs/api-contract.md): endpoints, types, status codes and how to trigger each error
+- [`docs/typescript-cheatsheet.md`](docs/typescript-cheatsheet.md): every TypeScript pattern used here, with real examples
 - [`docs/ai-notes.md`](docs/ai-notes.md): how AI was used, including mistakes and how they were caught
 
 ## Troubleshooting
