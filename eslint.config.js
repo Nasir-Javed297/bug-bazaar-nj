@@ -44,6 +44,28 @@ export default tseslint.config(
     },
   },
 
+  // Task D1-4: all network requests go through src/api. Nothing else may call fetch directly.
+  {
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/api/**", "src/mocks/**"],
+    rules: {
+      "no-restricted-globals": [
+        "error",
+        { name: "fetch", message: "Use the data layer in src/api instead of calling fetch." },
+        { name: "XMLHttpRequest", message: "Use the data layer in src/api instead." },
+      ],
+      "no-restricted-properties": [
+        "error",
+        { object: "window", property: "fetch", message: "Use the data layer in src/api instead." },
+        {
+          object: "globalThis",
+          property: "fetch",
+          message: "Use the data layer in src/api instead.",
+        },
+      ],
+    },
+  },
+
   // Must stay LAST: turns off every rule that would conflict with Prettier's formatting.
   prettier,
 );

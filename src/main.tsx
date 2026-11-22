@@ -1,8 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import { config } from "./config";
+import { store } from "./store/store";
 import "./main.css";
 
 /**
@@ -26,9 +28,12 @@ if (!rootElement) {
 void enableMocking().then(() => {
   ReactDOM.createRoot(rootElement).render(
     <React.StrictMode>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      {/* Provider makes the Redux store available to every component */}
+      <Provider store={store}>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </Provider>
     </React.StrictMode>,
   );
 });

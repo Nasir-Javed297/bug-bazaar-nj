@@ -68,6 +68,10 @@ src/
   main.tsx       Entry point: mounts React
 ```
 
+## Data layer
+
+Components never call `fetch`. Every request goes through `src/api/client.ts`, usually via the RTK Query hooks in `src/api/apiSlice.ts` (for example `useGetProductsQuery`). ESLint reports any `fetch` outside `src/api/` and `src/mocks/` as an error.
+
 ## Code quality
 
 - **TypeScript strict mode.** `any`, `@ts-ignore` and `@ts-expect-error` are lint errors.
@@ -83,6 +87,7 @@ Every commit starts with its task ID, for example `D3-2: add cart page`.
 
 - [`docs/decisions.md`](docs/decisions.md): what was chosen for each task, the alternatives, and why
 - [`docs/api-contract.md`](docs/api-contract.md): endpoints, types, status codes and how to trigger each error
+- [`docs/ai-notes.md`](docs/ai-notes.md): how AI was used, including mistakes and how they were caught
 
 ## Troubleshooting
 
