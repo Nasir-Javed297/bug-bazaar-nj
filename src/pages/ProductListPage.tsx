@@ -3,6 +3,7 @@
 // request state to QueryStateView, which shows loading / error / empty / success consistently.
 import { useGetProductsQuery } from "../api/apiSlice";
 import { toRequestState } from "../api/requestState";
+import { BackToTopButton } from "../components/BackToTopButton";
 import { FiltersBar } from "../components/FiltersBar";
 import { Pagination } from "../components/Pagination";
 import { ProductGrid } from "../components/ProductGrid";
@@ -87,6 +88,7 @@ export function ProductListPage() {
           </>
         )}
       </QueryStateView>
+      <BackToTopButton />
     </div>
   );
 }

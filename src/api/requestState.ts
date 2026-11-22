@@ -18,7 +18,20 @@ export function toClientError(error: unknown): ClientError {
   return { status: 0, code: "UNKNOWN_ERROR", message: "Something went wrong." };
 }
 
+/**
+ * True for requests WE cancelled on purpose (see useCancelProductRequestOnLeave).
+ * RTK Query reports those as `{ name: "AbortError" }`; our client reports `code: "ABORTED"`.
+ */
+function isAbortError(error: unknown): boolean {
+  if (isClientError(error)) return error.code === "ABORTED";
+  return (
+    typeof error === "object" && error !== null && "name" in error && error.name === "AbortError"
+  );
+}
+
 export function toRequestState<T>(result: QueryResultLike<T>): RequestState<T, ClientError> {
+  // A cancelled request isn't a failure to show the user: a new request is about to replace it.
+  if (result.isError && isAbortError(result.error)) return { status: "loading" };
   if (result.isError) return { status: "error", error: toClientError(result.error) };
   if (result.currentData !== undefined) return { status: "success", data: result.currentData };
   if (result.isUninitialized) return { status: "idle" };

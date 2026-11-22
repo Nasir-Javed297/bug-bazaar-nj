@@ -141,3 +141,24 @@ Before, the app had three separate `useState` calls (`loading`, `error`, `bugs`)
 - _A `switch` in every page._ That's what the pages had before. It works, but each page drifted (different text, roles and markup), which is exactly what "consistent" rules out.
 - _React Suspense + error boundaries for data loading._ Elegant, but RTK Query's hooks don't suspend by default, and an error boundary is meant for unexpected crashes (D4-7), not expected API errors with a retry.
 - _Skeleton cards instead of a spinner for the list._ Nicer perceived performance, but a different look per page. Kept one loading style for consistency.
+
+## D2-4: useEffect and cleanup
+
+**Used:**
+
+- **Never the wrong product:** pages read RTK Query's `currentData`, which only holds data for the **current** id (D1-4). A slow response for a product you already left can't be shown.
+- **Cancelling in-flight requests:** `useCancelProductRequestOnLeave(id)` has a cleanup that aborts the product's still-running request (`api.util.getRunningQueryThunk(...).abort()`) when the id changes or the page closes. The abort reaches `fetch` through the `AbortSignal` that `client.ts` passes along, so the browser really stops the request (`ERR_ABORTED` in the Network tab).
+- **StrictMode-safe:** in development React runs effects _set up → clean up → set up_ to catch missing cleanups. The cleanup therefore schedules the abort for the next tick, and a re-run for the **same** id un-schedules it. Without that, dev mode would cancel the request the page is about to use.
+- **Cancelled ≠ failed:** the adapter (`requestState.ts`) reports an aborted request as `loading`, so returning to a product whose request was cancelled never flashes an error.
+- **Back to Top** (`BackToTopButton`): a `scroll` listener (`passive: true`) that schedules at most one state update per frame with `requestAnimationFrame`. The cleanup removes the listener **and** cancels any pending frame. Clicking it respects `prefers-reduced-motion` and moves focus to `<main>`, because the button disappears.
+- **Scroll reset** when the product id changes (`useEffect(..., [id])`), because React Router keeps the scroll position between routes.
+- **"More from this category"** on the details page gives a realistic way to switch products quickly, and makes the page long enough for Back to Top.
+
+**Verified:** with Slow network on (responses arrive out of order), switching p-0101 → p-0202 → p-0303 150 ms apart showed p-0303, and the first two requests were `ERR_ABORTED`. Leaving a loading product cancelled its request. Wrapping `add/removeEventListener` showed 2 scroll listeners added and 2 removed after leaving the page (StrictMode adds one extra and removes it).
+
+**Considered:**
+
+- _Only relying on `currentData`._ Correct display, but the old request keeps running. The task asks for cleanup of in-flight requests.
+- _Our own `useEffect` + `AbortController` + `fetch` for the details page._ The classic pattern, but it would bypass the cache (D3-5) and duplicate what RTK Query already does. We use RTK Query's own abort, which uses an `AbortController` internally.
+- _Aborting immediately in the cleanup._ Breaks in StrictMode (described above).
+- _Throttling scroll with `setTimeout`._ `requestAnimationFrame` matches the screen refresh rate and is paused in background tabs, so it's cheaper and smoother.

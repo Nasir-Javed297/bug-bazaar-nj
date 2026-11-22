@@ -15,7 +15,8 @@ export default function App() {
           🦆 The Bug Bazaar
         </Link>
       </header>
-      <main>
+      {/* tabIndex={-1}: can receive focus from code (e.g. Back to top) without being a Tab stop. */}
+      <main id="main-content" tabIndex={-1}>
         <Routes>
           <Route path="/" element={<ProductListPage />} />
           <Route path="/products/:id" element={<ProductDetailsPage />} />

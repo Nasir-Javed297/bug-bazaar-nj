@@ -437,3 +437,38 @@ img {
     opacity: 0.4;
   }
 }
+
+/* ---------- Back to top + related products (D2-4) ---------- */
+.back-to-top {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 900;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--color-text);
+  color: #ffffff;
+  font: inherit;
+  font-weight: 600;
+  box-shadow: var(--shadow-hover);
+  cursor: pointer;
+}
+
+.back-to-top:hover {
+  background: #1e293b;
+}
+
+.related {
+  margin-top: 40px;
+}
+
+.related h2 {
+  margin: 0 0 16px;
+  font-size: 1.25rem;
+}
+
+/* The <main> element is focused by code (Back to top); it doesn't need a visible outline. */
+#main-content:focus {
+  outline: none;
+}
