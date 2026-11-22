@@ -88,6 +88,13 @@ export const handlers = [
     }
 
     const params = new URL(request.url).searchParams;
+
+    // Task D2-6: reverse the order of search replies. "d" waits 2.0 s, "du" 1.4 s,
+    // "duc" 0.8 s, "duck" 0.2 s, so each longer query overtakes the shorter ones.
+    const searchText = params.get("search") ?? "";
+    if (getScenarios().outOfOrderSearch && searchText) {
+      await delay(Math.max(200, 2600 - searchText.length * 600));
+    }
     const category = params.get("category") ?? "";
     const sort = params.get("sort") ?? "";
     const query: ProductsQuery = {

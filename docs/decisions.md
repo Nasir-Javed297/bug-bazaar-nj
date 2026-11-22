@@ -184,3 +184,25 @@ Before, the app had three separate `useState` calls (`loading`, `error`, `bugs`)
 - _A `useDebouncedCallback` (debounce the function instead of the value)._ Useful for "save after typing", but a debounced **value** fits better as a query argument and needs no `useRef` juggling.
 - _lodash.debounce / usehooks-ts._ Fine libraries, but each hook is under 25 lines, and writing them shows how the cleanup works.
 - _Functional updates in `useLocalStorage` (`setValue(prev => ...)`)._ Left out to keep the API simple. The Dev panel computes the next value from the current one directly.
+
+## D2-6: Race conditions
+
+**The problem:** replies don't have to come back in the order requests were sent. With naive code (`fetch(...).then(data => setProducts(data))`), whichever reply arrives **last** wins, even if it's for an older query.
+
+**Simulation:** the Dev panel switch **Out-of-order search** makes the mock delay each search by `2600 ms − 600 ms × letters`, so "d" answers last (2.0 s) and "duck" first (0.2 s).
+
+**Proof the bug is real:** a console script with naive "last response wins" logic sent `d, du, duc, duck` 350 ms apart. Replies arrived `duck, duc, du, d`, and the naive screen ended on **3,171 results for "d"** while the box said "duck" (correct: 1,278).
+
+**How the store avoids it (layered):**
+
+1. **Debounce (D2-5):** fast typing sends one request. This reduces the race but doesn't prevent it: a user who pauses longer than 300 ms between letters still sends several.
+2. **Cache keyed by query + `currentData`:** RTK Query stores each reply under **its own** arguments, and our adapter reads `currentData`, the entry for the **current** arguments only. A late reply for "d" fills the "d" entry and can never replace "duck". The rule is "show the answer to the current question", not "show the last answer".
+3. **No stale results while typing:** during the 300 ms debounce window the box already says "duck" while the last request was for "du". The page compares the box with the debounced query and shows "Searching…" until they match, so the result list and count always belong to the text in the box.
+
+**Verified in the UI:** with the switch on, typing d / u / c / k with 350 ms pauses sent all four requests, and "d" answered last. A recorder sampled the screen every 100 ms: 47 samples, 28 showing results, **0 showing results for a different query than the box**. Final screen: 1,278 / p-0013 (duck).
+
+**Considered:**
+
+- _A "request id" check (`if (id !== latestId.current) return`) or an `ignore` flag in the effect cleanup._ The classic fix for hand-written `useEffect` fetching, and how I'd do it without RTK Query. Keying results by query solves the same problem, and also caches them.
+- _Aborting older search requests._ That saves bandwidth, but the late replies are still useful: they're cached, so deleting back from "duck" to "du" shows results instantly. Correctness doesn't depend on aborting. (For product details we do abort, D2-4, because the task asked for cleanup there.)
+- _Showing the previous results dimmed while searching._ Nicer for some users, but it would still show an old query's results and count, which this task rules out.

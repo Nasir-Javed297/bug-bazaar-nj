@@ -2,6 +2,7 @@
 // Container component: reads filters from the URL, fetches matching products and hands the
 // request state to QueryStateView, which shows loading / error / empty / success consistently.
 import { useGetProductsQuery } from "../api/apiSlice";
+import type { ClientError } from "../api/client";
 import { toRequestState } from "../api/requestState";
 import { BackToTopButton } from "../components/BackToTopButton";
 import { FiltersBar } from "../components/FiltersBar";
@@ -12,6 +13,7 @@ import { EmptyState } from "../components/StatusViews";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { useProductFilters } from "../hooks/useProductFilters";
 import { DEFAULT_PAGE_SIZE, type ProductsResponse } from "../types/api";
+import type { RequestState } from "../types/request";
 
 /** How long typing must pause before searching. Long enough to skip keystrokes, short enough to feel instant. */
 const SEARCH_DEBOUNCE_MS = 300;
@@ -24,6 +26,10 @@ export function ProductListPage() {
   const debouncedSearch = useDebouncedValue(filters.search.trim(), SEARCH_DEBOUNCE_MS);
 
   // The filters from the URL ARE the query. A new combination = a new request (and cache entry).
+  //
+  // Race conditions (task D2-6): replies can arrive in any order. Each reply is cached under
+  // ITS OWN query, and `currentData` (read in toRequestState) only returns the entry for the
+  // CURRENT query. So a late reply for "d" can never replace the results for "duck".
   const result = useGetProductsQuery({
     search: debouncedSearch,
     category: filters.category,
@@ -31,6 +37,13 @@ export function ProductListPage() {
     inStock: filters.inStock,
     page: filters.page,
   });
+
+  // During the debounce pause the box already says "duck" while the last request was for "du".
+  // Showing those results would mean showing an old query, so show "Searching…" instead.
+  const isTyping = filters.search.trim() !== debouncedSearch;
+  const state: RequestState<ProductsResponse, ClientError> = isTyping
+    ? { status: "loading" }
+    : toRequestState(result);
 
   const goToPage = (page: number) => {
     updateFilters({ page });
@@ -74,8 +87,8 @@ export function ProductListPage() {
         hasActiveFilters={hasActiveFilters}
       />
       <QueryStateView
-        state={toRequestState(result)}
-        loadingLabel="Loading products…"
+        state={state}
+        loadingLabel={isTyping ? "Searching…" : "Loading products…"}
         errorTitle="We couldn't load the products"
         onRetry={() => void result.refetch()}
         isEmpty={(data) => data.items.length === 0}

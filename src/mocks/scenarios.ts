@@ -13,6 +13,11 @@ export type MockScenarios = {
   forceOutOfStock: boolean;
   /** Adds 2-4 seconds of latency to every response, to see loading states. */
   slowNetwork: boolean;
+  /**
+   * Search replies arrive in REVERSE order: the shorter the query, the slower the reply.
+   * Typing d, du, duc, duck: the answer for "d" arrives last (task D2-6).
+   */
+  outOfOrderSearch: boolean;
 };
 
 export const DEFAULT_SCENARIOS: MockScenarios = {
@@ -21,6 +26,7 @@ export const DEFAULT_SCENARIOS: MockScenarios = {
   expireSession: false,
   forceOutOfStock: false,
   slowNetwork: false,
+  outOfOrderSearch: false,
 };
 
 export const SCENARIO_LABELS: Record<keyof MockScenarios, string> = {
@@ -29,6 +35,7 @@ export const SCENARIO_LABELS: Record<keyof MockScenarios, string> = {
   expireSession: "Session expired (401 on login-only endpoints)",
   forceOutOfStock: "Checkout: item sold out (409)",
   slowNetwork: "Slow network (+2-4 s)",
+  outOfOrderSearch: "Out-of-order search (short queries answer last)",
 };
 
 export const SCENARIOS_STORAGE_KEY = "bug-bazaar:mock-scenarios";
