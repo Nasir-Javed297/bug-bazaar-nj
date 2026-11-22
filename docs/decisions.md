@@ -560,3 +560,13 @@ Also named: render prop (`QueryStateView`), network facade enforced by ESLint, i
 **How:** findings were traced through the code (callers, defaults, imports). Their app and tests weren't run, and the review says so.
 
 **My own PR:** no comments or reviews on #1 yet (checked 23 Nov); replies will be added to the same file.
+
+## D5-7: AI notes
+
+**Completed** [`docs/ai-notes.md`](ai-notes.md):
+
+- **7 AI mistakes**, each with how it was caught and the fix (the latest: architecture doc claims that didn't match the code, caught by checking every claim with `grep`).
+- **3 AI uses** with the prompt, what I kept and what I changed: turning the spec into a plan (changed: no task skipped for time), the TypeScript cheat sheet (changed: simple types, every new syntax linked to its section), and the partner reviews (changed: wrong line numbers fixed, untested findings labelled, nothing posted automatically).
+- **What I wouldn't hand to AI:** deciding work is finished and putting my name on it (merging, review comments, self-assessment).
+
+**Why these three uses:** they cover planning, learning and reviewing, not only code generation, and each one has a concrete change I made and can explain.
