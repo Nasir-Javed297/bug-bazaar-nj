@@ -519,3 +519,15 @@ Full table with every optimization and its justification: [`docs/performance.md`
 Also named: render prop (`QueryStateView`), network facade enforced by ESLint, idempotency key, error boundary.
 
 **Why these three:** they're the ones that appear in almost every file a reviewer opens. Each claim in the section (who uses what, which tests exist, what the compiler checks) was checked against the code; two overstatements in the draft were corrected.
+
+## D5-3: Order queue design
+
+**Written:** [`docs/orders.md`](orders.md): the order service saves the order, its idempotency key and an `OrderPlaced` event in one transaction (outbox), answers `201 queued` at once, and a queue feeds three workers in order: inventory (reserve stock) → payment (charge) → email (confirm). A failed payment releases the reserved stock.
+
+- **Why a queue:** fast answer to the shopper, a failing provider doesn't fail the order, traffic spikes wait in line, each worker scales on its own, crashed jobs are redelivered.
+- **Email down:** the order still completes; the email message is retried with backoff and goes to a dead-letter queue + alert after too many failures. A `sent_emails` record stops duplicates.
+- **No double charges:** the D3-2 idempotency key stops a browser retry from creating a second order, and the payment worker uses the order id as the payment provider's idempotency key (plus a unique `order_id` in `payments`) so a redelivered queue message can't charge twice.
+
+**Matches the front end:** the `queued → processing → completed` statuses and the polling confirmation page (D3-2) are what this design produces. Code references in the doc were checked against `CheckoutPage.tsx`, `apiSlice.ts` and `db.ts`.
+
+**Considered:** doing everything inside `POST /orders` (slow, and one provider outage fails the whole order); payment before inventory (would need refunds for sold-out items); pushing the status over a WebSocket instead of polling (not worth it for one short-lived screen).
