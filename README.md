@@ -111,6 +111,7 @@ Every commit starts with its task ID, for example `D3-2: add cart page`.
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): folder structure, data flow diagrams, where each kind of state lives, design patterns
 - [`docs/orders.md`](docs/orders.md): order queue design, what happens if email is down, how idempotency prevents double charges
+- [`docs/glossary.md`](docs/glossary.md): six system-design terms in plain words, each with an example from this store
 - [`docs/decisions.md`](docs/decisions.md): what was chosen for each task, the alternatives, and why
 - [`docs/api-contract.md`](docs/api-contract.md): endpoints, types, status codes and how to trigger each error
 - [`docs/auth.md`](docs/auth.md): login flow, where the token is stored and the trade-off, 401 handling

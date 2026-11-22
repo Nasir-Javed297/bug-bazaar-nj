@@ -531,3 +531,9 @@ Also named: render prop (`QueryStateView`), network facade enforced by ESLint, i
 **Matches the front end:** the `queued → processing → completed` statuses and the polling confirmation page (D3-2) are what this design produces. Code references in the doc were checked against `CheckoutPage.tsx`, `apiSlice.ts` and `db.ts`.
 
 **Considered:** doing everything inside `POST /orders` (slow, and one provider outage fails the whole order); payment before inventory (would need refunds for sold-out items); pushing the status over a WebSocket instead of polling (not worth it for one short-lived screen).
+
+## D5-4: Glossary
+
+**Written:** [`docs/glossary.md`](glossary.md): latency, idempotency, horizontal scaling, CDN, cache invalidation and eventual consistency. Each has a plain-words definition, an example from this store that points to the code (debounce and the slow-network switch; the checkout idempotency key; stateless bearer tokens; hashed build files and category images; RTK Query time limits, tags and `resetApiState`; order status polling and the 409 check), and a one-line version for the walkthrough.
+
+**Why examples from this app instead of textbook ones:** every example can be shown working in the browser or found in a file, so each term can be explained and demonstrated, not just recited.
