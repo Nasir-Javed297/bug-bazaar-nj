@@ -52,36 +52,43 @@ The app talks to a mock backend built with [MSW](https://mswjs.io/), which inter
 
 Defined in `.env.example`, typed in `src/vite-env.d.ts` and read **only** in `src/config.ts`. Vite only exposes variables that start with `VITE_` to the browser, so **never put secrets here**.
 
-| Variable            | Default | Purpose                                                                                   |
-| ------------------- | ------- | ----------------------------------------------------------------------------------------- |
-| `VITE_API_BASE_URL` | `/api`  | Base URL for every API request                                                            |
-| `VITE_ENABLE_MOCKS` | `true`  | `true` starts the in-browser mock API (MSW). `false` turns it off (to use a real backend) |
+| Variable              | Default                           | Purpose                                                                                   |
+| --------------------- | --------------------------------- | ----------------------------------------------------------------------------------------- |
+| `VITE_API_BASE_URL`   | `/api`                            | Base URL for every API request                                                            |
+| `VITE_ENABLE_MOCKS`   | `true`                            | `true` starts the in-browser mock API (MSW). `false` turns it off (to use a real backend) |
+| `VITE_STOCK_FEED_URL` | `ws(s)://<current host>/ws/stock` | WebSocket URL for live stock updates                                                      |
 
 ## Folder structure
 
 ```
-docs/            Written tasks: decisions, API contract, architecture...
+docs/            Written tasks: decisions, API contract, architecture, reviews...
+scripts/         a11y.mjs (Lighthouse audit), perf-list.js (list measurement)
+.github/         CI workflow
 src/
-  api/           Data layer: the only code that talks to the network
+  api/           Data layer: the only code that talks to the network (HTTP + WebSocket)
   mocks/         Mock backend (MSW) for dev and tests
   store/         Redux store and slices (cart, auth)
   pages/         One component per route
   components/    Reusable UI pieces
   hooks/         Custom React hooks
+  monitoring/    Error logging and global error handlers
   types/         Shared TypeScript types (the API contract)
   utils/         Small pure helper functions
+  test/          Integration tests and test setup
   config.ts      Reads environment variables
   App.tsx        Header + routes
   main.tsx       Entry point: mounts React
 ```
 
+The full picture (data flow diagrams, where each kind of state lives, design patterns) is in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
 ## Testing
 
-`npm test` runs **30 tests** with [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/) in a simulated browser (jsdom).
+`npm test` runs **37 tests** with [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/) in a simulated browser (jsdom).
 
 - **Behaviour, not implementation:** integration tests render the whole app at a URL and use it like a shopper: find controls by their label or role, type, click, and check what's on screen.
 - **Real requests:** the app's `fetch` calls go through the **same MSW handlers** as the browser mock (`msw/node`), so the data layer is tested for real.
-- **Covered:** cart rules, custom hooks, filtering and URL state, login (redirect back, wrong password, double submit, 401), checkout (success, **409**, no duplicate order on retry), error mapping, UI states, the error boundary.
+- **Covered:** cart rules, custom hooks, filtering and URL state, login (redirect back, wrong password, double submit, 401), checkout (success, **409**, no duplicate order on retry), error mapping, UI states, the error boundary, keyboard and screen-reader behaviour, the virtualized "All" list, and live stock (update shown, recovery after a drop, closed on leave).
 - Test files sit next to the code they test (`*.test.ts`); app-level tests and helpers are in `src/test/`.
 
 ## Accessibility
@@ -109,19 +116,28 @@ Every commit starts with its task ID, for example `D3-2: add cart page`.
 
 ## Documentation
 
+**How it's built**
+
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): folder structure, data flow diagrams, where each kind of state lives, design patterns
-- [`docs/orders.md`](docs/orders.md): order queue design, what happens if email is down, how idempotency prevents double charges
-- [`docs/glossary.md`](docs/glossary.md): six system-design terms in plain words, each with an example from this store
-- [`docs/reviews/architecture-review.md`](docs/reviews/architecture-review.md): my review of my partner's architecture doc (D5-5)
-- [`docs/reviews/code-review.md`](docs/reviews/code-review.md): my review of my partner's PR (D5-6)
-- [`docs/reflection.md`](docs/reflection.md): my ratings per topic, two gaps and the next step for each
 - [`docs/decisions.md`](docs/decisions.md): what was chosen for each task, the alternatives, and why
 - [`docs/api-contract.md`](docs/api-contract.md): endpoints, types, status codes and how to trigger each error
 - [`docs/auth.md`](docs/auth.md): login flow, where the token is stored and the trade-off, 401 handling
 - [`docs/performance.md`](docs/performance.md): how the product list was measured, the two slowest spots and the fixes, before/after
 - [`docs/monitoring.md`](docs/monitoring.md): error boundary, error logging, and the three things to track in production
+
+**System design**
+
+- [`docs/orders.md`](docs/orders.md): order queue design, what happens if email is down, how idempotency prevents double charges
+- [`docs/glossary.md`](docs/glossary.md): six system-design terms in plain words, each with an example from this store
+
+**Reviews and learning**
+
+- [`docs/reviews/architecture-review.md`](docs/reviews/architecture-review.md): my review of my partner's architecture doc
+- [`docs/reviews/code-review.md`](docs/reviews/code-review.md): my review of my partner's PR
 - [`docs/typescript-cheatsheet.md`](docs/typescript-cheatsheet.md): every TypeScript pattern used here, with real examples
 - [`docs/ai-notes.md`](docs/ai-notes.md): how AI was used, including mistakes and how they were caught
+- [`docs/reflection.md`](docs/reflection.md): my ratings per topic, two gaps and the next step for each
+- [`docs/walkthrough.md`](docs/walkthrough.md): the 10-minute walkthrough script
 
 ## Troubleshooting
 

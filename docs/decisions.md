@@ -581,3 +581,17 @@ Also named: render prop (`QueryStateView`), network facade enforced by ESLint, i
 2. **System design:** redraw the order queue from memory, design a "back in stock" email feature the same way, read one real source per term, and explain the design to my partner.
 
 **Why the ratings are mine:** the scores were given by me, not generated. The point of a reflection is to show real gaps, so they're honest rather than flattering.
+
+## D5-9: Final PR and walkthrough
+
+**Prepared:**
+
+- [`docs/pull-request.md`](pull-request.md): the full description for PR #1 (how to run it, what each day added, a table of behaviours to try with the real Dev tools labels, checks, known limitations), to paste into the PR.
+- [`docs/walkthrough.md`](walkthrough.md): a timed 10-minute script: the full shopping flow (filters in the URL, live stock, cart, login redirect, a lost order reply and a safe retry, order status), one hard bug (polling that never stopped on a missing order) and one trade-off (where the login token is stored), plus backups and likely questions.
+- README brought up to date: 37 tests, `VITE_STOCK_FEED_URL`, the full folder list, docs grouped by purpose.
+
+**Checked before marking the PR ready:**
+
+- Every task D0 to D5-8 has at least one commit starting with its ID (the 4 commits without an ID are the Week 1 starter history).
+- CI `verify` green on `3c84cd8` for both the push and the pull request runs; locally `npm run check` (37 tests) and `npm run build` pass.
+- The two risky demo moments were rehearsed in the browser: with _Checkout: order saved, reply lost (500)_ on, the first attempt showed "…You won't be charged twice." with 1 order saved; switching it off and clicking **Place order** again led to the same order (`o-mwsbhmoo-pabye`), still 1 order. `/orders/o-does-not-exist` showed "Order not found" after exactly 1 request in 6 s.
