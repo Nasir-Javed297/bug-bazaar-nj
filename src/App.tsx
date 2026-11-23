@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { DevPanel } from "./components/DevPanel";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { Footer } from "./components/Footer";
 import { Header } from "./components/Header";
 import { RequireAuth } from "./components/RequireAuth";
 import { config } from "./config";
@@ -80,6 +81,7 @@ export default function App() {
           </Routes>
         </ErrorBoundary>
       </main>
+      <Footer />
       {config.enableMocks && <DevPanel />}
     </>
   );

@@ -10,7 +10,7 @@ describe("showing all 5,000 products", () => {
     expect(await screen.findByText("5000 products")).toBeInTheDocument();
 
     await user.selectOptions(screen.getByLabelText("Show"), "all");
-    const list = await screen.findByRole("list", { name: "" }, { timeout: 3000 });
+    const list = await within(screen.getByRole("main")).findByRole("list", {}, { timeout: 3000 });
     expect(screen.getByTestId("location")).toHaveTextContent("/?perPage=all");
 
     const items = within(list).getAllByRole("listitem");

@@ -5,7 +5,7 @@ import { useGetProductsQuery } from "../api/apiSlice";
 import type { ClientError } from "../api/client";
 import { toRequestState } from "../api/requestState";
 import { BackToTopButton } from "../components/BackToTopButton";
-import { FiltersBar } from "../components/FiltersBar";
+import { FiltersSidebar, FiltersToolbar } from "../components/FiltersBar";
 import { LiveStockStatus } from "../components/LiveStockStatus";
 import { Pagination } from "../components/Pagination";
 import { ProductGrid } from "../components/ProductGrid";
@@ -17,6 +17,7 @@ import { useLiveStock } from "../hooks/useLiveStock";
 import { useProductFilters } from "../hooks/useProductFilters";
 import { MAX_PAGE_SIZE, type ProductsResponse } from "../types/api";
 import type { RequestState } from "../types/request";
+import { CATEGORY_LABELS } from "../utils/categoryLabels";
 
 /** How long typing must pause before searching. Long enough to skip keystrokes, short enough to feel instant. */
 const SEARCH_DEBOUNCE_MS = 300;
@@ -87,42 +88,58 @@ export function ProductListPage() {
       />
     );
 
+  // The heading names what's shown: "Rubber ducks" when that category is picked.
+  const heading = filters.category ? CATEGORY_LABELS[filters.category] : "All products";
+
   return (
-    <div className="page">
-      <h1>Shop developer gear</h1>
-      <FiltersBar
-        filters={filters}
-        onChange={updateFilters}
-        onClear={clearFilters}
-        hasActiveFilters={hasActiveFilters}
-      />
-      <QueryStateView
-        state={state}
-        loadingLabel={isTyping ? "Searching…" : "Loading products…"}
-        errorTitle="We couldn't load the products"
-        onRetry={() => void result.refetch()}
-        isEmpty={(data) => data.items.length === 0}
-        renderEmpty={renderEmpty}
-      >
-        {({ items, total }) => (
-          <>
-            {/* role="status": screen readers announce the new count when filters change. */}
-            <div className="result-bar">
-              <p className="result-count" role="status">
-                {total} {total === 1 ? "product" : "products"}
-              </p>
-              <LiveStockStatus status={liveStatus} />
-            </div>
-            <ProductGrid products={items} />
-            <Pagination
-              page={filters.page}
-              totalPages={Math.ceil(total / pageSize)}
-              onPageChange={goToPage}
-            />
-          </>
-        )}
-      </QueryStateView>
-      <BackToTopButton />
-    </div>
+    <>
+      <section className="page-hero" aria-labelledby="shop-heading">
+        <div className="page-hero__inner">
+          <p className="eyebrow">Curated gear for developers</p>
+          <h1 id="shop-heading">{heading}</h1>
+          <p className="page-hero__lead">
+            Keyboards, rubber ducks, coffee and stickers, chosen for long debugging sessions.
+          </p>
+        </div>
+      </section>
+      <div className="page shop-layout">
+        <FiltersSidebar
+          filters={filters}
+          onChange={updateFilters}
+          onClear={clearFilters}
+          hasActiveFilters={hasActiveFilters}
+        />
+        <div className="shop-layout__main">
+          <FiltersToolbar filters={filters} onChange={updateFilters} />
+          <QueryStateView
+            state={state}
+            loadingLabel={isTyping ? "Searching…" : "Loading products…"}
+            errorTitle="We couldn't load the products"
+            onRetry={() => void result.refetch()}
+            isEmpty={(data) => data.items.length === 0}
+            renderEmpty={renderEmpty}
+          >
+            {({ items, total }) => (
+              <>
+                {/* role="status": screen readers announce the new count when filters change. */}
+                <div className="result-bar">
+                  <p className="result-count" role="status">
+                    {total} {total === 1 ? "product" : "products"}
+                  </p>
+                  <LiveStockStatus status={liveStatus} />
+                </div>
+                <ProductGrid products={items} />
+                <Pagination
+                  page={filters.page}
+                  totalPages={Math.ceil(total / pageSize)}
+                  onPageChange={goToPage}
+                />
+              </>
+            )}
+          </QueryStateView>
+        </div>
+        <BackToTopButton />
+      </div>
+    </>
   );
 }

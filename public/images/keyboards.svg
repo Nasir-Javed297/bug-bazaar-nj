@@ -1,4 +1,4 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" role="img" aria-label="Mechanical keyboard">
-  <rect width="320" height="240" fill="#e0e7ff"/>
+  <rect width="320" height="240" fill="#eef1f6"/>
   <rect x="40" y="80" width="240" height="90" rx="12" fill="#1f2937"/><g fill="#9ca3af"><rect x="56" y="94" width="24" height="18" rx="3"/><rect x="88" y="94" width="24" height="18" rx="3"/><rect x="120" y="94" width="24" height="18" rx="3"/><rect x="152" y="94" width="24" height="18" rx="3"/><rect x="184" y="94" width="24" height="18" rx="3"/><rect x="216" y="94" width="48" height="18" rx="3"/><rect x="56" y="120" width="40" height="18" rx="3"/><rect x="104" y="120" width="24" height="18" rx="3"/><rect x="136" y="120" width="24" height="18" rx="3"/><rect x="168" y="120" width="24" height="18" rx="3"/><rect x="200" y="120" width="64" height="18" rx="3"/><rect x="96" y="146" width="128" height="14" rx="3"/></g>
 </svg>

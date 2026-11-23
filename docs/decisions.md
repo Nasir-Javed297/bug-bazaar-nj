@@ -595,3 +595,18 @@ Also named: render prop (`QueryStateView`), network facade enforced by ESLint, i
 - Every task D0 to D5-8 has at least one commit starting with its ID (the 4 commits without an ID are the Week 1 starter history).
 - CI `verify` green on `3c84cd8` for both the push and the pull request runs; locally `npm run check` (37 tests) and `npm run build` pass.
 - The two risky demo moments were rehearsed in the browser: with _Checkout: order saved, reply lost (500)_ on, the first attempt showed "…You won't be charged twice." with 1 order saved; switching it off and clicking **Place order** again led to the same order (`o-mwsbhmoo-pabye`), still 1 order. `/orders/o-does-not-exist` showed "Order not found" after exactly 1 request in 6 s.
+
+## Theme: "Midnight and champagne" (after D5-9)
+
+**Changed:** the look only. No behaviour, URL, data or request changed.
+
+- **Palette:** midnight navy (`#0f1a30`) header and footer, navy ink (`#14213d`) text and buttons, champagne gold (`#c9a96e`) only for fine details (current-page underline, cart count, card hover border), on a pearl page (`#eef0f3`) with white cards so products stand out. All tokens live at the top of `src/main.css`.
+- **Type:** DM Serif Display for headings and product names, Manrope for everything else (Google Fonts, `display=swap` so text shows immediately in a fallback font).
+- **Layout:** filters in a left sidebar (category as a radio group, availability, clear), search / sort / show in a toolbar above the grid, four cards per row on desktop, one column with category "pills" on phones. A title band, announcement strip and footer were added (static content; footer links go to existing pages).
+- **Cards:** category and rating, serif name, stock, price, and a "View product" cue. The cue is `aria-hidden` and not a control: the whole card is still the single link it was (D4-1), so adding to the cart still happens on the product page.
+
+**Accessibility kept:** the toolbar's search label is visually hidden but still read; the category radios are real inputs (hidden circle, gold line for the selected one) inside a `fieldset` with a `legend`; every text colour meets 4.5:1 (gold text on white uses the darker `#7d6435`); focus rings are navy on light areas and gold on navy. Lighthouse accessibility stays **100** on home, cart and login.
+
+**Tests:** 3 lines changed in 2 files. Category is chosen with `getByRole("radio", { name: "Rubber ducks" })` instead of a dropdown, and the product list is found inside `main`, because the footer adds link lists. All 37 tests pass.
+
+**Considered:** keeping the category dropdown (no test change), but a visible list is faster to scan with only five options, and matches the requested sidebar layout.

@@ -10,14 +10,14 @@ describe("filtering the catalogue", () => {
     expect(await screen.findByText("5000 products")).toBeInTheDocument();
 
     await user.type(screen.getByLabelText("Search products"), "debug");
-    await user.selectOptions(screen.getByLabelText("Category"), "ducks");
+    await user.click(screen.getByRole("radio", { name: "Rubber ducks" }));
 
     // The same answer the server gives for this query.
     const expected = queryProducts({ search: "debug", category: "ducks" }).total;
     expect(await screen.findByText(`${expected} products`)).toBeInTheDocument();
     expect(screen.getByTestId("location")).toHaveTextContent("/?search=debug&category=ducks");
 
-    const names = within(screen.getByRole("list", { name: "" }))
+    const names = within(within(screen.getByRole("main")).getByRole("list"))
       .getAllByRole("link")
       .map((link) => link.textContent ?? "");
     expect(names.length).toBeGreaterThan(0);
@@ -33,7 +33,7 @@ describe("filtering the catalogue", () => {
       sort: "price-asc",
     }).items[0];
     expect(await screen.findByRole("link", { name: cheapestCoffeeInStock?.name })).toBeVisible();
-    expect(screen.getByLabelText("Category")).toHaveValue("coffee");
+    expect(screen.getByRole("radio", { name: "Coffee" })).toBeChecked();
     expect(screen.getByLabelText("In stock only")).toBeChecked();
     expect(screen.getByLabelText("Sort by")).toHaveValue("price-asc");
 

@@ -1,8 +1,9 @@
-// One product in the grid: image, name, price, rating and stock.
+// One product in the grid: image, category, rating, name, stock and price.
 // Presentational component: it only receives data through props and displays it.
 import { memo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import type { Product } from "../types/api";
+import { CATEGORY_LABELS } from "../utils/categoryLabels";
 import { formatPrice } from "../utils/formatPrice";
 import { StockBadge } from "./StockBadge";
 
@@ -24,16 +25,24 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
 
   return (
     <article className="product-card">
-      {/* alt="": the image is decorative, the name below already says what it is. */}
-      <img
-        className="product-card__image"
-        src={product.imageUrl}
-        alt=""
-        width={320}
-        height={240}
-        loading="lazy"
-      />
+      <div className="product-card__media">
+        {/* alt="": the image is decorative, the name below already says what it is. */}
+        <img
+          className="product-card__image"
+          src={product.imageUrl}
+          alt=""
+          width={320}
+          height={240}
+          loading="lazy"
+        />
+      </div>
       <div className="product-card__body">
+        <div className="product-card__meta">
+          <span className="product-card__category">{CATEGORY_LABELS[product.category]}</span>
+          <span className="product-card__rating" aria-label={`Rated ${product.rating} out of 5`}>
+            ★ {product.rating.toFixed(1)}
+          </span>
+        </div>
         <h2 className="product-card__name">
           {/* The ONLY focusable element in the card. CSS stretches its click area over
               the whole card, so Tab moves product -> product and Enter opens it. */}
@@ -41,11 +50,13 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
             {product.name}
           </Link>
         </h2>
+        <StockBadge stock={product.stock} />
         <p className="product-card__price">{formatPrice(product.price)}</p>
-        <div className="product-card__meta">
-          <span aria-label={`Rated ${product.rating} out of 5`}>★ {product.rating.toFixed(1)}</span>
-          <StockBadge stock={product.stock} />
-        </div>
+        {/* A visual cue only: the card's link (above) already opens the product, and its name is
+            what screen readers announce. aria-hidden keeps this from being read twice. */}
+        <span className="product-card__cta" aria-hidden="true">
+          View product
+        </span>
       </div>
     </article>
   );

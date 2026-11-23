@@ -15,6 +15,7 @@ import { StockBadge } from "../components/StockBadge";
 import { useCancelProductRequestOnLeave } from "../hooks/useCancelProductRequestOnLeave";
 import { useDocumentTitle } from "../hooks/useDocumentTitle";
 import { useLiveStock } from "../hooks/useLiveStock";
+import { CATEGORY_LABELS } from "../utils/categoryLabels";
 import { formatPrice } from "../utils/formatPrice";
 import { getFromPath } from "../utils/navigation";
 
@@ -80,7 +81,7 @@ export function ProductDetailsPage() {
                 height={240}
               />
               <div className="product-details__info">
-                <p className="product-details__category">{product.category}</p>
+                <p className="product-details__category">{CATEGORY_LABELS[product.category]}</p>
                 <h1>{product.name}</h1>
                 <p className="product-details__price">{formatPrice(product.price)}</p>
                 <p aria-label={`Rated ${product.rating} out of 5`}>
