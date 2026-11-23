@@ -40,7 +40,7 @@
   --radius: 4px;
   --shadow: 0 1px 2px rgba(15, 26, 48, 0.05);
   --shadow-hover: 0 14px 32px rgba(15, 26, 48, 0.14);
-  --page-width: 1360px;
+  --page-width: 1440px;
   --gutter: clamp(16px, 4vw, 56px);
 }
 
@@ -99,11 +99,18 @@ a {
   color: var(--color-ink);
 }
 
-/* Keyboard focus is always visible (mouse clicks don't show it: that's :focus-visible).
-   Navy on light backgrounds; the header and footer switch it to gold (see below). */
+/* Keyboard focus on links and buttons (only when using Tab: a mouse click doesn't show it,
+   that's what :focus-visible means). Navy on light backgrounds, gold in the header and footer.
+   Form fields and cards don't use an outline: they show focus with their border instead. */
 :focus-visible {
   outline: 2px solid var(--color-ink);
   outline-offset: 3px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
 }
 
 /* Small capitals label above a heading, e.g. "CURATED GEAR FOR DEVELOPERS". */
@@ -406,9 +413,11 @@ a {
   border-left-color: var(--color-gold);
 }
 
-.filter-option:has(input[type="radio"]:focus-visible) {
-  outline: 2px solid var(--color-ink);
-  outline-offset: 3px;
+/* Keyboard focus on a category: underline the label (no outline box). */
+.filter-option:has(input:focus-visible) span {
+  text-decoration: underline;
+  text-decoration-color: var(--color-gold);
+  text-underline-offset: 4px;
 }
 
 .filter-option--checkbox {
@@ -485,7 +494,7 @@ a {
 }
 
 .toolbar input[type="search"]:hover,
-.toolbar select:hover {
+.toolbar input[type="search"]:focus {
   border-color: var(--color-ink);
 }
 
@@ -499,7 +508,8 @@ a {
   padding-left: 14px;
 }
 
-.toolbar__select:hover {
+.toolbar__select:hover,
+.toolbar__select:focus-within {
   border-color: var(--color-ink);
 }
 
@@ -512,8 +522,19 @@ a {
 .toolbar__select select {
   height: 46px;
   border: none;
-  padding: 0 12px 0 8px;
+  padding: 0 40px 0 8px;
   cursor: pointer;
+}
+
+/* Our own chevron instead of the browser's arrow, which sat right against the border.
+   It's a background image, so it never takes focus or clicks. */
+.toolbar__select select,
+.cart-line__quantity select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%2314213d' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px;
 }
 
 /* Result count and live stock, above the grid */
@@ -627,17 +648,14 @@ a {
     border-color 0.2s;
 }
 
-.product-card:hover {
+.product-card:hover,
+.product-card:has(.product-card__link:focus-visible) {
   border-color: var(--color-gold);
   box-shadow: var(--shadow-hover);
   transform: translateY(-4px);
 }
 
-/* When the card's link has keyboard focus, outline the whole card. */
-.product-card:focus-within {
-  outline: 2px solid var(--color-ink);
-  outline-offset: 3px;
-}
+/* Keyboard focus on the card's link looks like hover (lift + gold border, see above). */
 
 .product-card__media {
   overflow: hidden;
@@ -658,8 +676,8 @@ a {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
-  padding: 18px 18px 20px;
+  gap: 6px;
+  padding: 14px 14px 16px;
   flex: 1;
 }
 
@@ -669,7 +687,7 @@ a {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
 }
 
 .product-card__category {
@@ -681,13 +699,13 @@ a {
 
 .product-card__rating {
   color: var(--color-gold-text);
-  font-size: 0.8rem;
+  font-size: 0.74rem;
 }
 
 .product-card__name {
   margin: 2px 0 0;
-  font-size: 1.3rem;
-  line-height: 1.25;
+  font-size: 1.08rem;
+  line-height: 1.3;
 }
 
 .product-card__link {
@@ -695,7 +713,7 @@ a {
   text-decoration: none;
 }
 
-/* The card already shows the focus outline, so the link doesn't need its own. */
+/* The whole card shows the focus (see above), so the link doesn't need its own outline. */
 .product-card__link:focus-visible {
   outline: none;
 }
@@ -709,19 +727,19 @@ a {
 
 .product-card__price {
   margin: auto 0 0;
-  padding-top: 6px;
-  font-size: 1.2rem;
+  padding-top: 4px;
+  font-size: 1rem;
   font-weight: 600;
 }
 
 /* Looks like a button, but it's only a cue: the whole card is already the link. */
 .product-card__cta {
   width: 100%;
-  margin-top: 6px;
-  padding: 11px 0;
+  margin-top: 4px;
+  padding: 8px 0;
   border: 1px solid var(--color-ink);
   border-radius: var(--radius);
-  font-size: 0.75rem;
+  font-size: 0.66rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -751,6 +769,11 @@ a {
   height: 6px;
   border-radius: 50%;
   background: currentColor;
+}
+
+/* Inside the compact product cards the stock line is a little smaller. */
+.product-card .stock-badge {
+  font-size: 0.74rem;
 }
 
 .stock-badge--in {
@@ -1004,10 +1027,10 @@ a {
 }
 
 .cart-line__quantity select {
-  padding: 6px 10px;
+  padding: 6px 34px 6px 10px;
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius);
-  background: var(--color-surface);
+  background-color: var(--color-surface);
   color: var(--color-ink);
   font: inherit;
 }
@@ -1174,7 +1197,8 @@ a {
   color: var(--color-ink);
 }
 
-.form-field input:hover {
+.form-field input:hover,
+.form-field input:focus {
   border-color: var(--color-ink);
 }
 
@@ -1427,7 +1451,7 @@ a {
   }
 
   .filter-group:first-child .filter-group__title {
-    margin-bottom: 0;
+    margin-bottom: 14px;
   }
 
   .filter-group:first-child .filter-option {
