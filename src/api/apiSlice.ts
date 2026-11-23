@@ -53,6 +53,12 @@ export type CreateOrderArgs = CreateOrderRequest & {
 /** How long product data stays cached after no page uses it (task D3-5). */
 const PRODUCT_CACHE_SECONDS = 5 * 60;
 
+/** "All products" loads this many at a time, as the shopper scrolls (infinite loading). */
+export const PRODUCTS_BATCH_SIZE = 24;
+
+/** The filters for the infinite list: everything except paging, which the endpoint handles. */
+export type ProductsFeedQuery = Omit<ProductsQuery, "page" | "pageSize">;
+
 export const api = createApi({
   // Where this API's cache lives inside the Redux store: state.api
   reducerPath: "api",
@@ -76,6 +82,30 @@ export const api = createApi({
       // refreshes exactly the lists that show it.
       providesTags: (result) =>
         result ? result.items.map((product) => ({ type: "Product" as const, id: product.id })) : [],
+    }),
+    // build.infiniteQuery<ResponseType, ArgumentType, PageParamType>: one cache entry that holds
+    // several pages ("batches") of the same list. Used for "All products": instead of downloading
+    // all 5,000 products at once (694 KB), it loads 24 (3.4 KB) and adds 24 more each time
+    // fetchNextPage() is called. The page number is the "page param".
+    getProductsFeed: build.infiniteQuery<ProductsResponse, ProductsFeedQuery, number>({
+      infiniteQueryOptions: {
+        initialPageParam: 1,
+        // The next page number, or undefined when every product is loaded (stops loading).
+        getNextPageParam: (lastPage, _allPages, lastPageParam) =>
+          lastPageParam * PRODUCTS_BATCH_SIZE < lastPage.total ? lastPageParam + 1 : undefined,
+      },
+      query: ({ queryArg, pageParam }) => ({
+        path: `/products${toQueryString({ ...queryArg, page: pageParam, pageSize: PRODUCTS_BATCH_SIZE })}`,
+      }),
+      keepUnusedDataFor: PRODUCT_CACHE_SECONDS,
+      // Same tags as getProducts: every product in every loaded batch, so an order or a sold-out
+      // reply refreshes this list too (task D3-5), and live stock can find it (D4-4).
+      providesTags: (result) =>
+        result
+          ? result.pages.flatMap((page) =>
+              page.items.map((product) => ({ type: "Product" as const, id: product.id })),
+            )
+          : [],
     }),
     getProduct: build.query<Product, string>({
       query: (id) => ({ path: `/products/${encodeURIComponent(id)}` }),
@@ -118,6 +148,7 @@ export const api = createApi({
 // createOrder -> useCreateOrderMutation.
 export const {
   useGetProductsQuery,
+  useGetProductsFeedInfiniteQuery,
   useGetProductQuery,
   useGetOrderQuery,
   useGetMeQuery,

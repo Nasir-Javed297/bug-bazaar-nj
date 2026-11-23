@@ -610,3 +610,26 @@ Also named: render prop (`QueryStateView`), network facade enforced by ESLint, i
 **Tests:** 3 lines changed in 2 files. Category is chosen with `getByRole("radio", { name: "Rubber ducks" })` instead of a dropdown, and the product list is found inside `main`, because the footer adds link lists. All 37 tests pass.
 
 **Considered:** keeping the category dropdown (no test change), but a visible list is faster to scan with only five options, and matches the requested sidebar layout.
+
+## Infinite loading for "All products" (after D5-9)
+
+**Changed:** "All products" no longer downloads 5,000 products at once (694 KB). It loads **24 at a time** (3.4 KB each) as the shopper scrolls, into the same virtualized grid. 24 and 96 per page are unchanged.
+
+- **Data:** an RTK Query `infiniteQuery` endpoint (`getProductsFeed`) holds every loaded batch in one cache entry, with the same per-product tags as the paged list. Needed Redux Toolkit 2.6+, so it was upgraded from 2.3 to 2.8.2. The API didn't change: it's the same `GET /products?page=N&pageSize=24`.
+- **Loading more:** `LoadMore` loads the next batch when it comes within 800 px of the screen (`IntersectionObserver`), and is a real **Load more products** button for keyboard and screen-reader users. A status line announces "Showing 48 of 5000 products".
+- **Rendering:** still virtualized (only ~40 cards in the page). Items keep `aria-setsize="5000"`, so screen readers hear "item 37 of 5000" even before everything is loaded.
+- **Errors:** if a batch fails, the loaded products stay, an alert says so, and **Try again** loads it. No automatic retry, so a broken network isn't hammered.
+- **Live stock:** `liveStock.ts` patches the loaded batches too. A test proves it (it fails if that code is removed).
+
+**Trade-offs accepted:**
+
+- The footer is only reachable once every product is loaded, or by pressing the button instead of scrolling. That's the usual cost of infinite loading; the main links are also in the header.
+- "Find in page" only finds loaded, on-screen products (already true with virtualization).
+
+**Considered:**
+
+- _Infinite loading without virtualization:_ the page would grow to thousands of cards again after a long scroll, bringing back the problem D4-2 fixed.
+- _Merging pages into a normal query by hand_ (`serializeQueryArgs` + `merge`): works on RTK 2.3, but refetching after an order and keeping pages in order are easy to get wrong. The built-in infinite query handles both.
+- _Removing "All"_ (only 24 and 96): simplest, but loses browsing everything in one list.
+
+**Tests:** 2 new (a failed batch keeps the list and Try again recovers; live stock reaches the loaded batches), and the big-list test now checks 24 first, then 48 after **Load more**. 39 tests pass.

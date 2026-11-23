@@ -1,6 +1,6 @@
 // Performance fix #2 (task D4-2, docs/performance.md): for very long lists ("All products",
-// 5,000 items) only the rows near the screen are rendered: ~5 rows instead of 1,250. Rows are
-// swapped in and out while scrolling ("virtualization").
+// up to 5,000 items, loaded 24 at a time by infinite loading) only the rows near the screen are
+// rendered: ~5 rows instead of 1,250. Rows are swapped in and out while scrolling ("virtualization").
 //
 // Layout matches the normal grid: as many columns as fit at >= 220px with 20px gaps.
 // Accessibility: off-screen items are not in the page, so each item says its position
@@ -19,9 +19,14 @@ const OVERSCAN_ROWS = 3;
 
 type VirtualProductGridProps = {
   products: Product[];
+  /**
+   * How many products exist in total. With infinite loading only some are loaded yet, but a
+   * screen reader should still hear "item 37 of 5000", not "of 48". Defaults to products.length.
+   */
+  total?: number;
 };
 
-export function VirtualProductGrid({ products }: VirtualProductGridProps) {
+export function VirtualProductGrid({ products, total = products.length }: VirtualProductGridProps) {
   const listRef = useRef<HTMLDivElement>(null);
   const [columns, setColumns] = useState(1);
   // Distance from the top of the page to the list: the virtualizer works in page coordinates.
@@ -79,7 +84,7 @@ export function VirtualProductGrid({ products }: VirtualProductGridProps) {
               <div
                 key={product.id}
                 role="listitem"
-                aria-setsize={products.length}
+                aria-setsize={total}
                 aria-posinset={firstIndex + offset + 1}
               >
                 <ProductCard product={product} />

@@ -84,11 +84,11 @@ The full picture (data flow diagrams, where each kind of state lives, design pat
 
 ## Testing
 
-`npm test` runs **37 tests** with [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/) in a simulated browser (jsdom).
+`npm test` runs **39 tests** with [Vitest](https://vitest.dev/) + [React Testing Library](https://testing-library.com/) in a simulated browser (jsdom).
 
 - **Behaviour, not implementation:** integration tests render the whole app at a URL and use it like a shopper: find controls by their label or role, type, click, and check what's on screen.
 - **Real requests:** the app's `fetch` calls go through the **same MSW handlers** as the browser mock (`msw/node`), so the data layer is tested for real.
-- **Covered:** cart rules, custom hooks, filtering and URL state, login (redirect back, wrong password, double submit, 401), checkout (success, **409**, no duplicate order on retry), error mapping, UI states, the error boundary, keyboard and screen-reader behaviour, the virtualized "All" list, and live stock (update shown, recovery after a drop, closed on leave).
+- **Covered:** cart rules, custom hooks, filtering and URL state, login (redirect back, wrong password, double submit, 401), checkout (success, **409**, no duplicate order on retry), error mapping, UI states, the error boundary, keyboard and screen-reader behaviour, the "All" list (loads 24 at a time, virtualized, failed batch recovers), and live stock (update shown, recovery after a drop, closed on leave).
 - Test files sit next to the code they test (`*.test.ts`); app-level tests and helpers are in `src/test/`.
 
 ## Accessibility

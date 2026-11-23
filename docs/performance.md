@@ -117,3 +117,22 @@ No measurable difference (smaller than the noise), so the change wasn't kept. Th
 | "Back to list" URL computed once in the grid, instead of `useLocation()` in each card            | **Skipped** (D4-2) | Median script time 442 ms vs 457 ms over 3 samples each: no measurable difference                                                                                                                                                                                                                                                                                                                                   |
 | `useDeferredValue` for the big list                                                              | **Skipped** (D4-2) | Doesn't defer on a component's first mount in React 18, and Redux store updates (`useSyncExternalStore`) are always synchronous, so it couldn't help here                                                                                                                                                                                                                                                           |
 | `useMemo` / `useCallback` / `memo` everywhere else (`formatPrice`, `StockBadge`, filters bar...) | **Skipped**        | Those components render a few times per user action and cost microseconds. Memoizing them adds comparison work and code for no measurable gain. Memoization is only worth it where a profile shows repeated, wasted work, as with the scrolling cards                                                                                                                                                               |
+
+## Infinite loading for "All products" (after D5-9)
+
+**The remaining cost:** after virtualization, drawing "All" was cheap, but the page still downloaded **all 5,000 products in one request** before showing anything.
+
+**Measured:**
+
+| "All products"                   | Before (one request)                | After (infinite loading)                                                       |
+| -------------------------------- | ----------------------------------- | ------------------------------------------------------------------------------ |
+| First download                   | **694 KB** of JSON (5,000 products) | **3.4 KB** (24 products)                                                       |
+| Requests to see the first screen | 1 large                             | 1 small                                                                        |
+| More products                    | Already downloaded                  | +24 (3.4 KB) each time the "Load more" block comes within 800 px of the screen |
+| Product cards in the page        | ~40 (virtualized)                   | ~40 (still virtualized)                                                        |
+
+Sizes measured from the seeded data (`JSON.stringify` of the API response). In the browser: scrolling loaded 24 → 48 → … → 168 with one request per batch, while the page held **40 cards**. Network time per batch was 174–277 ms, which is the mock API's deliberate 100–400 ms delay. Full timings weren't recorded: the browser tab was in the background, where timers and frames are throttled.
+
+**How it works:** a new RTK Query **infinite query** (`getProductsFeed`, Redux Toolkit upgraded 2.3 → 2.8.2) keeps all loaded batches in one cache entry. `LoadMore` watches its position with an `IntersectionObserver` and calls `fetchNextPage()`; it's also a real button. The batches feed the same `VirtualProductGrid`, so drawing stays as fast as before.
+
+**Kept working:** live stock (updates are patched into the loaded batches), tags (an order refreshes the list), Back (returns to the same scroll position with every batch still loaded, measured 3,000 → 3,082 px), and a failed batch keeps the shown products and offers **Try again** with no retry loop.
