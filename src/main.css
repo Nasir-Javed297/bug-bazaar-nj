@@ -1289,9 +1289,10 @@ textarea:focus {
 }
 
 /* ---------- Back to top ---------- */
+/* Bottom-right corner (the Dev tools panel is bottom-left). */
 .back-to-top {
   position: fixed;
-  left: 16px;
+  right: 16px;
   bottom: 16px;
   z-index: 900;
   padding: 10px 18px;
@@ -1317,9 +1318,10 @@ textarea:focus {
 }
 
 /* ---------- Dev panel (mock API switches, only with mocks on) ---------- */
+/* Bottom-left corner, out of the way of Back to top (bottom-right). */
 .dev-panel {
   position: fixed;
-  right: 16px;
+  left: 16px;
   bottom: 16px;
   z-index: 1000;
   max-width: 320px;
