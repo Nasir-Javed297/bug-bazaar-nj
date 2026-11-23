@@ -633,3 +633,18 @@ Also named: render prop (`QueryStateView`), network facade enforced by ESLint, i
 - _Removing "All"_ (only 24 and 96): simplest, but loses browsing everything in one list.
 
 **Tests:** 2 new (a failed batch keeps the list and Try again recovers; live stock reaches the loaded batches), and the big-list test now checks 24 first, then 48 after **Load more**. 39 tests pass.
+
+## Add to cart on the product cards (after D5-9)
+
+**Changed:** every card in the list has an **Add to cart** button, so shoppers can add without opening the product. This replaces the decorative "View product" cue from the theme change. Clicking anywhere else on the card still opens the product.
+
+- **Same rules as the details page:** the button only dispatches `itemAdded`, and the cart reducer never goes above stock. Labels: **Add to cart** → **Add another** (with "In your cart (N)" above it) → **All in cart** (disabled) when every unit is in the cart; **Sold out** (disabled) at 0 stock.
+- **Click target:** the card's link is "stretched" over the whole card (D4-1). The button sits above it (`position: relative; z-index: 1`), so a click on the button adds instead of opening. The button only fills navy when the pointer is on it, not on any part of the card, so the card's hover doesn't suggest that clicking anywhere adds to the cart.
+- **Accessibility:** each button's name includes its product ("Add to cart, Pastel TKL keyboard"), so a screen reader's list of buttons isn't 24 identical "Add to cart"s. The name starts with the visible words, so voice control still works (WCAG 2.5.3). "In your cart (N)" is a `role="status"` region that's always in the page, so the change is announced. Keyboard order per card: the product link, then its button. Lighthouse accessibility stays **100**.
+- **Re-renders:** each card reads only its own quantity (`selectQuantityInCart(state, id)`), so adding one product re-renders that card, not all 24 (the cards stay memoized, D4-3).
+
+**Found while building it:** the first version added the product name with a visually hidden `<span>`. The computed name came out as "Add to cart , Pastel…" (an extra space before the comma), so the tests couldn't match it and screen readers would read it oddly. An `aria-label` that starts with the visible text gives the exact name.
+
+**Tests:** `src/test/cardAddToCart.test.tsx` (3): adding stays on the list and updates the header and the card; a sold-out product can't be added; a product whose whole stock is in the cart can't be added again. 42 tests pass.
+
+**Supersedes:** the Theme entry's note that adding to the cart happens only on the product page.

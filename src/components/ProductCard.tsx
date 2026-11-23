@@ -1,10 +1,11 @@
-// One product in the grid: image, category, rating, name, stock and price.
+// One product in the grid: image, category, rating, name, stock, price and "Add to cart".
 // Presentational component: it only receives data through props and displays it.
 import { memo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import type { Product } from "../types/api";
 import { CATEGORY_LABELS } from "../utils/categoryLabels";
 import { formatPrice } from "../utils/formatPrice";
+import { CardAddToCart } from "./CardAddToCart";
 import { StockBadge } from "./StockBadge";
 
 type ProductCardProps = {
@@ -44,19 +45,17 @@ export const ProductCard = memo(function ProductCard({ product }: ProductCardPro
           </span>
         </div>
         <h2 className="product-card__name">
-          {/* The ONLY focusable element in the card. CSS stretches its click area over
-              the whole card, so Tab moves product -> product and Enter opens it. */}
+          {/* CSS stretches this link's click area over the whole card, so clicking anywhere
+              opens the product. Tab order per card: this link, then "Add to cart". */}
           <Link to={`/products/${product.id}`} state={{ from }} className="product-card__link">
             {product.name}
           </Link>
         </h2>
         <StockBadge stock={product.stock} />
         <p className="product-card__price">{formatPrice(product.price)}</p>
-        {/* A visual cue only: the card's link (above) already opens the product, and its name is
-            what screen readers announce. aria-hidden keeps this from being read twice. */}
-        <span className="product-card__cta" aria-hidden="true">
-          View product
-        </span>
+        {/* Sits ABOVE the card's stretched link, so clicking it adds to the cart instead of
+            opening the product. */}
+        <CardAddToCart product={product} />
       </div>
     </article>
   );
