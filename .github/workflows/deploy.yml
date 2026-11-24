@@ -1,0 +1,61 @@
+# Bonus (task D4-6): auto-deploy `main` to GitHub Pages.
+# Every push to main (for example merging a PR) checks, builds and publishes the store at
+# https://<owner>.github.io/<repository name>/, e.g. https://nasir-javed297.github.io/bug-bazaar-nj/
+# The mock API (MSW) runs inside the browser, so the published site works with no backend.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  # Lets you redeploy by hand: Actions tab → Deploy → Run workflow.
+  workflow_dispatch:
+
+# Only what deploying to Pages needs.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deploy at a time; a newer push waits instead of cancelling a deploy halfway.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Never publish something that fails the checks (typecheck, lint, format, tests).
+      - run: npm run check
+      - name: Build for GitHub Pages
+        run: npm run build
+        env:
+          # Pages serves the site under the repository's name, not at the domain's root. Read from
+          # the repository itself, so renaming the repo (e.g. to bug-bazaar-nj) needs no code change.
+          BASE_PATH: /${{ github.event.repository.name }}/
+          VITE_ENABLE_MOCKS: "true"
+      # Pages has no "send every path to index.html" setting. It serves 404.html for unknown
+      # paths, so a copy of the app there makes links like /products/p-0042 work when opened
+      # directly or refreshed (the app reads the URL and shows the right page).
+      - name: Make deep links work
+        run: cp dist/index.html dist/404.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

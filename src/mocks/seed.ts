@@ -99,7 +99,8 @@ export function seedProducts(count = PRODUCT_COUNT, seed = 42): Product[] {
       category,
       stock,
       rating,
-      imageUrl: `/images/${category}.svg`,
+      // Relative to the site's base, so images also load under /bug-bazaar-nj/ on Pages.
+      imageUrl: `${import.meta.env.BASE_URL}images/${category}.svg`,
     };
   });
 }
