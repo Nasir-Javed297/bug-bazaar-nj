@@ -1,6 +1,6 @@
 # Bonus (task D4-6): auto-deploy `main` to GitHub Pages.
 # Every push to main (for example merging a PR) checks, builds and publishes the store at
-# https://<owner>.github.io/<repository name>/, e.g. https://nasir-javed297.github.io/bug-bazaar/
+# https://<owner>.github.io/<repository name>/, e.g. https://nasir-javed297.github.io/bug-bazaar-nj/
 # The mock API (MSW) runs inside the browser, so the published site works with no backend.
 name: Deploy
 
@@ -37,7 +37,7 @@ jobs:
         run: npm run build
         env:
           # Pages serves the site under the repository's name, not at the domain's root. Read from
-          # the repository itself, so renaming the repo (e.g. to bug-bazaar) needs no code change.
+          # the repository itself, so renaming the repo (e.g. to bug-bazaar-nj) needs no code change.
           BASE_PATH: /${{ github.event.repository.name }}/
           VITE_ENABLE_MOCKS: "true"
       # Pages has no "send every path to index.html" setting. It serves 404.html for unknown

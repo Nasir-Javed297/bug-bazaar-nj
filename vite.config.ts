@@ -5,7 +5,7 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   // Where the site is served from. "/" locally; the GitHub Pages deploy (bonus, D4-6) builds with
-  // BASE_PATH=/<repository name>/ (e.g. /bug-bazaar/) because Pages serves the site under it.
+  // BASE_PATH=/<repository name>/ (e.g. /bug-bazaar-nj/) because Pages serves the site under it.
   // Vite exposes it to the app as import.meta.env.BASE_URL.
   base: process.env.BASE_PATH ?? "/",
   optimizeDeps: {

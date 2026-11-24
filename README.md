@@ -1,6 +1,6 @@
 # The Bug Bazaar
 
-[![CI](https://github.com/Nasir-Javed297/bug-bounty-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/Nasir-Javed297/bug-bounty-starter/actions/workflows/ci.yml)
+[![CI](https://github.com/Nasir-Javed297/bug-bazaar-nj/actions/workflows/ci.yml/badge.svg)](https://github.com/Nasir-Javed297/bug-bazaar-nj/actions/workflows/ci.yml)
 
 A small online store for developer gear (rubber ducks, mechanical keyboards, coffee and stickers), built with **React + TypeScript**. It runs entirely in the browser against a **mock API**, so no backend is needed.
 
@@ -11,8 +11,8 @@ A small online store for developer gear (rubber ducks, mechanical keyboards, cof
 **You need:** [Node.js](https://nodejs.org/) **20 or newer** (`node -v` to check) and npm (comes with Node).
 
 ```bash
-git clone https://github.com/Nasir-Javed297/bug-bounty-starter.git
-cd bug-bounty-starter
+git clone https://github.com/Nasir-Javed297/bug-bazaar-nj.git
+cd bug-bazaar-nj
 npm install
 npm run dev
 ```
@@ -101,15 +101,15 @@ Every pull request into `main` (and every push to `main` / `dev`) runs [`.github
 
 ## Live demo and deployment
 
-**Live store:** <https://nasir-javed297.github.io/bug-bazaar/> (demo account `demo@bugbazaar.dev` / `password123`). It runs entirely in the browser with the mock API, so everything works without a backend.
+**Live store:** <https://nasir-javed297.github.io/bug-bazaar-nj/> (demo account `demo@bugbazaar.dev` / `password123`). It runs entirely in the browser with the mock API, so everything works without a backend.
 
 Every push to `main` (for example merging a pull request) runs [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): checks, then a build under the repository's sub-path, then publishing to GitHub Pages. To redeploy by hand: **Actions → Deploy → Run workflow**.
 
 To try the GitHub Pages build locally (in Git Bash, `MSYS_NO_PATHCONV=1` stops it from rewriting the path):
 
 ```bash
-MSYS_NO_PATHCONV=1 BASE_PATH=/bug-bazaar/ npm run build
-npm run preview -- --base /bug-bazaar/
+MSYS_NO_PATHCONV=1 BASE_PATH=/bug-bazaar-nj/ npm run build
+npm run preview -- --base /bug-bazaar-nj/
 ```
 
 ## Data layer

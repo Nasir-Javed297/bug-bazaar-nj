@@ -158,4 +158,4 @@ Since the PR is already merged, these can be posted on it as review comments, an
 
 ## Comments on my own PR
 
-On 23 Nov 2026 my PR [Nasir-Javed297/bug-bounty-starter#1](https://github.com/Nasir-Javed297/bug-bounty-starter/pull/1) had no comments or reviews yet. My replies to my partner's comments will be added here when they arrive.
+On 23 Nov 2026 my PR [Nasir-Javed297/bug-bazaar-nj#1](https://github.com/Nasir-Javed297/bug-bazaar-nj/pull/1) had no comments or reviews yet. My replies to my partner's comments will be added here when they arrive.

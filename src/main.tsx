@@ -20,7 +20,7 @@ async function enableMocking(): Promise<void> {
   await worker.start({
     onUnhandledRequest: "bypass",
     // The worker file lives next to index.html, which is under the sub-path on GitHub Pages
-    // (import.meta.env.BASE_URL is "/" locally, "/bug-bazaar/" there).
+    // (import.meta.env.BASE_URL is "/" locally, "/bug-bazaar-nj/" there).
     serviceWorker: { url: `${import.meta.env.BASE_URL}mockServiceWorker.js` },
   });
 }
@@ -42,7 +42,7 @@ void enableMocking().then(() => {
       <ErrorBoundary>
         {/* Provider makes the Redux store available to every component */}
         <Provider store={store}>
-          {/* basename: every route is relative to the site's base (/bug-bazaar/ on Pages).
+          {/* basename: every route is relative to the site's base (/bug-bazaar-nj/ on Pages).
               BASE_URL ends with "/"; the router wants it without. */}
           <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, "")}>
             <App />
