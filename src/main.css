@@ -1,0 +1,1619 @@
+/* =====================================================================================
+   The Bug Bazaar · theme "Midnight and champagne"
+   Navy for structure and text, champagne gold for fine details, white cards on a pearl page.
+   Every colour, font and size is a token here; components only use the tokens.
+   Contrast: every text colour below meets WCAG AA (4.5:1) on the background it's used on.
+   ===================================================================================== */
+:root {
+  /* Colours */
+  --color-midnight: #0f1a30; /* header, footer, dark panels */
+  --color-midnight-deep: #0a1426; /* announcement strip */
+  --color-ink: #14213d; /* text, primary buttons */
+  --color-ink-hover: #22335a;
+  --color-gold: #c9a96e; /* decoration only: lines, borders, text on navy */
+  --color-gold-text: #7d6435; /* gold for text on white (darker, so it's readable) */
+  --color-page: #eef0f3; /* pearl page background */
+  --color-surface: #ffffff; /* cards, panels */
+  --color-surface-soft: #f6f7f9;
+  --color-text: var(--color-ink);
+  --color-muted: #566074;
+  --color-on-dark: #f4efe6; /* text on navy */
+  --color-on-dark-muted: #b4bccb;
+  --color-border: #dfe3ea;
+  --color-border-strong: #c3c9d4;
+  --color-success-text: #2f6b53;
+  --color-success-bg: #eef6f1;
+  --color-success-border: #cfe0d7;
+  --color-warning-text: #8a4f1c;
+  --color-warning-bg: #fbf3e8;
+  --color-danger-text: #9b2c2c;
+  --color-danger-bg: #fbeeee;
+  --color-danger-border: #ebc4c4;
+  --color-info-bg: #eef2f9;
+  --color-info-border: #cbd5e6;
+
+  /* Type */
+  --font-display: "DM Serif Display", Georgia, "Times New Roman", serif;
+  --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* Shape and depth */
+  --radius: 4px;
+  --shadow: 0 1px 2px rgba(15, 26, 48, 0.05);
+  --shadow-hover: 0 14px 32px rgba(15, 26, 48, 0.14);
+  --page-width: 1440px;
+  --gutter: clamp(16px, 4vw, 56px);
+}
+
+/* ---------- Base ---------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--color-text);
+  background: var(--color-page);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The footer sits at the bottom even on short pages. */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 1.15;
+  color: var(--color-ink);
+}
+
+h1 {
+  font-size: clamp(2rem, 1.4rem + 2vw, 2.9rem);
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+a {
+  color: var(--color-ink);
+}
+
+/* Keyboard focus on links and buttons (only when using Tab: a mouse click doesn't show it,
+   that's what :focus-visible means). Navy on light backgrounds, gold in the header and footer.
+   Form fields and cards don't use an outline: they show focus with their border instead. */
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+}
+
+/* Small capitals label above a heading, e.g. "CURATED GEAR FOR DEVELOPERS". */
+.eyebrow {
+  margin: 0 0 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-gold-text);
+}
+
+/* ---------- Layout ---------- */
+.page {
+  width: 100%;
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 36px var(--gutter) 96px;
+}
+
+.page h1 {
+  margin: 0 0 16px;
+}
+
+/* ---------- Announcement strip, header and navigation ---------- */
+.announcement {
+  margin: 0;
+  padding: 8px var(--gutter);
+  background: var(--color-midnight-deep);
+  color: var(--color-on-dark-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 800;
+  background: var(--color-midnight);
+  color: var(--color-on-dark);
+}
+
+.site-header__inner {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  min-height: 76px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+}
+
+.site-header :focus-visible,
+.site-footer :focus-visible {
+  outline-color: var(--color-gold);
+}
+
+.site-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 1.2rem + 1vw, 2rem);
+  color: var(--color-on-dark);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 32px;
+}
+
+.nav-link,
+.cart-link,
+.nav-button {
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-on-dark-muted);
+  text-decoration: none;
+  padding: 6px 0;
+  border-bottom: 1px solid transparent;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.nav-link:hover,
+.cart-link:hover,
+.nav-button:hover {
+  color: var(--color-on-dark);
+}
+
+/* The page you're on: a thin gold underline. */
+.nav-link[aria-current="page"],
+.cart-link[aria-current="page"] {
+  color: var(--color-on-dark);
+  border-bottom-color: var(--color-gold);
+}
+
+.nav-button {
+  background: none;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.cart-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-on-dark);
+}
+
+.cart-link__icon {
+  flex: none;
+}
+
+.cart-badge {
+  min-width: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--color-gold);
+  border-radius: 999px;
+  color: var(--color-gold);
+  font-size: 0.75rem;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  background: var(--color-midnight);
+  color: var(--color-on-dark-muted);
+  font-size: 0.9rem;
+}
+
+.site-footer__inner {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 48px var(--gutter) 32px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 32px 48px;
+}
+
+.site-footer__brand {
+  grid-column: span 2;
+  max-width: 360px;
+}
+
+.site-footer__brand p {
+  margin: 0;
+}
+
+.site-footer__title {
+  margin-bottom: 8px !important;
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  color: var(--color-on-dark);
+}
+
+.site-footer__column h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-gold);
+}
+
+.site-footer__column ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.site-footer a {
+  color: var(--color-on-dark-muted);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--color-on-dark);
+  text-decoration: underline;
+  text-decoration-color: var(--color-gold);
+}
+
+.site-footer__legal {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 18px var(--gutter) 28px;
+  border-top: 1px solid #24324f;
+  font-size: 0.8rem;
+}
+
+/* ---------- Page hero (title band on the shop page) ---------- */
+.page-hero {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.page-hero__inner {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 40px var(--gutter) 34px;
+}
+
+.page-hero h1 {
+  margin: 0;
+}
+
+.page-hero__lead {
+  margin: 10px 0 0;
+  max-width: 60ch;
+  color: var(--color-muted);
+}
+
+/* ---------- Shop layout: filters on the left, toolbar and products on the right ---------- */
+.shop-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+.shop-layout__main {
+  min-width: 0;
+}
+
+/* Sidebar filters */
+.filters-sidebar {
+  position: sticky;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.filter-group {
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filter-group__title {
+  width: 100%;
+  padding: 0 0 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--color-border-strong);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.filter-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 14px;
+  color: var(--color-muted);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.filter-option:hover {
+  color: var(--color-ink);
+}
+
+/* Category radios: the circle is hidden; the selected option gets a gold line on its left.
+   The input stays in the page (not display:none), so keyboard and screen readers still use it. */
+.filter-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.filter-option:has(input[type="radio"]:checked) {
+  color: var(--color-ink);
+  font-weight: 600;
+  border-left-color: var(--color-gold);
+}
+
+/* Keyboard focus on a category: underline the label (no outline box). */
+.filter-option:has(input:focus-visible) span {
+  text-decoration: underline;
+  text-decoration-color: var(--color-gold);
+  text-underline-offset: 4px;
+}
+
+.filter-option--checkbox {
+  padding-left: 0;
+  border-left: none;
+}
+
+.filter-option input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--color-ink);
+}
+
+.text-button {
+  align-self: flex-start;
+  padding: 0 0 3px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--color-gold);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.text-button:hover {
+  border-bottom-color: var(--color-ink);
+}
+
+/* Toolbar above the grid: search, sort, show */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.toolbar__search {
+  position: relative;
+  flex: 1 1 280px;
+}
+
+.toolbar__search-icon {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-muted);
+  pointer-events: none;
+}
+
+.toolbar input[type="search"],
+.toolbar select {
+  height: 40px;
+  font-size: 0.85rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: inherit;
+  transition: border-color 0.15s;
+}
+
+.toolbar input[type="search"] {
+  width: 100%;
+  padding: 0 14px 0 38px;
+}
+
+.toolbar input[type="search"]::placeholder {
+  color: var(--color-muted);
+}
+
+.toolbar input[type="search"]:hover,
+.toolbar input[type="search"]:focus {
+  border-color: var(--color-ink);
+}
+
+.toolbar__select {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  padding-left: 12px;
+}
+
+.toolbar__select:hover,
+.toolbar__select:focus-within {
+  border-color: var(--color-ink);
+}
+
+.toolbar__select label {
+  font-size: 0.8rem;
+  color: var(--color-muted);
+  white-space: nowrap;
+}
+
+.toolbar__select select {
+  height: 38px;
+  border: none;
+  padding: 0 34px 0 6px;
+  cursor: pointer;
+}
+
+/* Our own chevron instead of the browser's arrow, which sat right against the border.
+   It's a background image, so it never takes focus or clicks. */
+.toolbar__select select,
+.cart-line__quantity select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%2314213d' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 11px;
+}
+
+/* Result count and live stock, above the grid */
+.result-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+  margin-bottom: 20px;
+}
+
+.result-count {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* ---------- Buttons and links ---------- */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 0 26px;
+  border: 1px solid var(--color-ink);
+  border-radius: var(--radius);
+  background: var(--color-ink);
+  color: var(--color-on-dark);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.button:hover {
+  background: var(--color-ink-hover);
+  border-color: var(--color-ink-hover);
+}
+
+.button--secondary {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  border-color: var(--color-ink);
+}
+
+.button--secondary:hover {
+  background: var(--color-ink);
+  color: var(--color-on-dark);
+}
+
+.button:disabled {
+  background: var(--color-surface-soft);
+  border-color: var(--color-border-strong);
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 24px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-ink);
+  text-decoration: none;
+  border-bottom: 1px solid var(--color-gold);
+  padding-bottom: 2px;
+}
+
+.back-link:hover {
+  border-bottom-color: var(--color-ink);
+}
+
+/* ---------- Product grid and cards ---------- */
+.product-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  /* As many columns as fit, each at least 220px wide. No media queries needed. */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.product-card {
+  position: relative; /* anchors the stretched link below */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s,
+    border-color 0.2s;
+}
+
+.product-card:hover,
+.product-card:has(.product-card__link:focus-visible) {
+  border-color: var(--color-gold);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-4px);
+}
+
+/* Keyboard focus on the card's link looks like hover (lift + gold border, see above). */
+
+.product-card__media {
+  overflow: hidden;
+}
+
+.product-card__image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  transition: transform 0.4s;
+}
+
+.product-card:hover .product-card__image {
+  transform: scale(1.04);
+}
+
+.product-card__body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px 14px 16px;
+  flex: 1;
+}
+
+.product-card__meta {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.66rem;
+}
+
+.product-card__category {
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.product-card__rating {
+  color: var(--color-gold-text);
+  font-size: 0.74rem;
+}
+
+.product-card__name {
+  margin: 2px 0 0;
+  font-size: 1.08rem;
+  line-height: 1.3;
+}
+
+.product-card__link {
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+/* The whole card shows the focus (see above), so the link doesn't need its own outline. */
+.product-card__link:focus-visible {
+  outline: none;
+}
+
+/* "Stretched link": an invisible layer over the whole card, so clicking anywhere opens it. */
+.product-card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.product-card__price {
+  margin: auto 0 0;
+  padding-top: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* "Add to cart" on the card (src/components/CardAddToCart.tsx). */
+.product-card__actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.product-card__in-cart {
+  margin: 0;
+  min-height: 1.2em; /* space kept, so the button doesn't jump when the text appears */
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--color-success-text);
+}
+
+/* Above the card's stretched link (::after, z-index auto), so this click adds to the cart. */
+.product-card__add {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  padding: 9px 0;
+  border: 1px solid var(--color-ink);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+/* Fills only when the pointer is on the button itself: a click elsewhere on the card opens the
+   product, so the card hover mustn't suggest that it adds to the cart. */
+.product-card__add:hover:not(:disabled) {
+  background: var(--color-ink);
+  color: var(--color-on-dark);
+}
+
+.product-card__add:disabled {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-soft);
+  color: var(--color-muted);
+  cursor: not-allowed;
+}
+
+/* ---------- Stock badge ---------- */
+.stock-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+
+.stock-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* Inside the compact product cards the stock line is a little smaller. */
+.product-card .stock-badge {
+  font-size: 0.74rem;
+}
+
+.stock-badge--in {
+  color: var(--color-success-text);
+}
+
+.stock-badge--low {
+  color: var(--color-warning-text);
+}
+
+.stock-badge--out {
+  color: var(--color-muted);
+}
+
+/* ---------- Product details ---------- */
+.product-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 48px;
+  align-items: start;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: clamp(20px, 4vw, 48px);
+}
+
+.product-details__image {
+  width: 100%;
+  border-radius: var(--radius);
+}
+
+.product-details__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.product-details__info h1 {
+  margin: 0;
+}
+
+.product-details__info p {
+  margin: 0;
+}
+
+.product-details__category {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--color-gold-text);
+}
+
+.product-details__price {
+  font-size: 1.9rem;
+  font-weight: 600;
+}
+
+/* ---------- Add to cart ---------- */
+.add-to-cart {
+  margin-top: 12px;
+}
+
+.add-to-cart__status {
+  min-height: 1.5em; /* reserve space so the page doesn't jump when the message appears */
+  margin: 8px 0 0;
+  color: var(--color-success-text);
+  font-weight: 500;
+}
+
+/* ---------- Related products ---------- */
+.related {
+  margin-top: 56px;
+}
+
+.related h2 {
+  margin: 0 0 20px;
+  font-size: 1.75rem;
+}
+
+/* ---------- Pagination ---------- */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 16px 24px;
+  margin-top: 48px;
+}
+
+.pagination [aria-current="page"] {
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* ---------- Infinite loading for "All products" (src/components/LoadMore.tsx) ---------- */
+.load-more {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  margin-top: 36px;
+  text-align: center;
+}
+
+.load-more__count {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* Thin progress line: how much of the catalogue is loaded. */
+.load-more__bar {
+  width: min(240px, 100%);
+  height: 2px;
+  background: var(--color-border);
+}
+
+.load-more__bar span {
+  display: block;
+  height: 100%;
+  background: var(--color-gold);
+  transition: width 0.3s;
+}
+
+.load-more__error {
+  margin: 0;
+  color: var(--color-danger-text);
+  font-size: 0.9rem;
+}
+
+.load-more__end {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+}
+
+/* ---------- Shared UI states: loading, error, empty (src/components/StatusViews.tsx) ---------- */
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 64px 24px;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+/* A thin gold rule replaces the emoji icons, which didn't suit the theme. */
+.state__icon {
+  display: none;
+}
+
+.state:not([role="status"])::before {
+  content: "";
+  width: 40px;
+  height: 1px;
+  margin-bottom: 8px;
+  background: var(--color-gold);
+}
+
+.state--error {
+  border-color: var(--color-danger-border);
+}
+
+.state--error::before {
+  background: var(--color-danger-text) !important;
+}
+
+.state__title {
+  margin: 0;
+  font-size: 1.75rem;
+}
+
+.state__message {
+  margin: 0 0 10px;
+  color: var(--color-muted);
+  max-width: 44ch;
+}
+
+.state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* ---------- Not found ---------- */
+.not-found {
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 64px 24px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.not-found p {
+  color: var(--color-muted);
+  margin: 0 0 24px;
+}
+
+/* ---------- Cart, checkout and order confirmation ---------- */
+.cart-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.cart-lines,
+.checkout-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cart-line {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  gap: 8px 20px;
+  align-items: center;
+  padding: 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.cart-line__image {
+  grid-row: span 3;
+  border-radius: var(--radius);
+}
+
+.cart-line__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-line__name {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.cart-line__name:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--color-gold);
+}
+
+.cart-line__unit {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.cart-line__quantity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.cart-line__quantity select {
+  padding: 6px 34px 6px 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+}
+
+.cart-line__total {
+  justify-self: start;
+  font-weight: 600;
+}
+
+.cart-line .button {
+  grid-column: 2;
+  justify-self: start;
+  min-height: 36px;
+  padding: 0 16px;
+}
+
+.checkout-lines li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
+
+.order-summary {
+  position: sticky;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-gold);
+  border-radius: var(--radius);
+}
+
+.order-summary h2,
+.order-summary p {
+  margin: 0;
+}
+
+.order-summary__total {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.alert {
+  margin-bottom: 20px;
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  border-left: 3px solid;
+}
+
+.alert p {
+  margin: 0 0 4px;
+}
+
+.alert--error {
+  background: var(--color-danger-bg);
+  color: var(--color-danger-text);
+  border-color: var(--color-danger-text);
+}
+
+.alert--info {
+  background: var(--color-info-bg);
+  color: var(--color-ink);
+  border-color: var(--color-ink);
+}
+
+.order-confirmation {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 48px 32px;
+  text-align: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-gold);
+  border-radius: var(--radius);
+}
+
+.order-steps {
+  list-style: none;
+  margin: 28px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.order-steps li {
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: var(--color-muted);
+}
+
+.order-steps li::before {
+  content: "○ ";
+}
+
+.order-steps .order-steps__done {
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
+  color: var(--color-success-text);
+  font-weight: 600;
+}
+
+.order-steps .order-steps__done::before {
+  content: "✓ ";
+}
+
+/* ---------- Login form and account ---------- */
+.auth-form {
+  max-width: 440px;
+  margin: 16px auto;
+  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-gold);
+  border-radius: var(--radius);
+}
+
+.auth-form h1 {
+  margin: 0;
+}
+
+.auth-form .button {
+  width: 100%;
+}
+
+.auth-form__hint {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.form-field input {
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  font: inherit;
+  color: var(--color-ink);
+}
+
+.form-field input:hover,
+.form-field input:focus {
+  border-color: var(--color-ink);
+}
+
+.form-field input[aria-invalid="true"] {
+  border-color: var(--color-danger-text);
+  background: #fffafa;
+}
+
+.form-field__error {
+  margin: 0;
+  color: var(--color-danger-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.account {
+  max-width: 480px;
+  padding: 32px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 2px solid var(--color-gold);
+  border-radius: var(--radius);
+}
+
+.account dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px 20px;
+  margin: 0 0 24px;
+}
+
+.account dt {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.account dd {
+  margin: 0;
+}
+
+/* ---------- Back to top ---------- */
+/* Bottom-right corner (the Dev tools panel is bottom-left). */
+.back-to-top {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 900;
+  padding: 10px 18px;
+  border: 1px solid var(--color-gold);
+  border-radius: 999px;
+  background: var(--color-midnight);
+  color: var(--color-on-dark);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  box-shadow: var(--shadow-hover);
+  cursor: pointer;
+}
+
+.back-to-top:hover {
+  background: var(--color-ink-hover);
+}
+
+/* The <main> element is focused by code (Back to top); it doesn't need a visible outline. */
+#main-content:focus {
+  outline: none;
+}
+
+/* ---------- Dev panel (mock API switches, only with mocks on) ---------- */
+/* Bottom-left corner, out of the way of Back to top (bottom-right). */
+.dev-panel {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 1000;
+  max-width: 320px;
+  padding: 10px 14px;
+  background: var(--color-midnight);
+  color: var(--color-on-dark);
+  border: 1px solid #2a3a5c;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+.dev-panel summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.dev-panel :focus-visible {
+  outline-color: var(--color-gold);
+}
+
+.dev-panel fieldset {
+  border: 1px solid #2a3a5c;
+  border-radius: var(--radius);
+  margin: 10px 0;
+}
+
+.dev-panel-option {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 6px 0;
+}
+
+.dev-panel-hint {
+  color: var(--color-on-dark-muted);
+  line-height: 1.4;
+}
+
+.dev-panel-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dev-panel .button {
+  min-height: 34px;
+  padding: 0 12px;
+  background: transparent;
+  border-color: var(--color-gold);
+  color: var(--color-on-dark);
+  letter-spacing: 0.06em;
+}
+
+.dev-panel .button:hover {
+  background: #22335a;
+}
+
+.dev-panel-log {
+  margin: 0 0 8px;
+  padding-left: 18px;
+  color: var(--color-on-dark-muted);
+  font-size: 0.75rem;
+}
+
+/* ---------- Accessibility helpers ---------- */
+/* Hidden on screen, still read by screen readers (e.g. the word "items" in the cart link). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skip link: off-screen until it receives keyboard focus, then shown at the top left. */
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -100px;
+  z-index: 2000;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  background: var(--color-gold);
+  color: var(--color-midnight);
+  font-weight: 600;
+}
+
+.skip-link:focus {
+  top: 12px;
+}
+
+/* ---------- Virtualized grid for "All products" (D4-2 fix #2) ---------- */
+.product-grid-virtual {
+  position: relative; /* rows are positioned inside it */
+}
+
+.product-grid-virtual__row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: grid;
+  gap: 20px;
+  padding-bottom: 20px; /* the gap between rows (part of each measured row height) */
+}
+
+/* ---------- Live stock status ---------- */
+.live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 4px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-surface);
+  font-size: 0.78rem;
+  color: var(--color-muted);
+}
+
+.live-status__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-border-strong);
+}
+
+.live-status--live {
+  color: var(--color-success-text);
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
+}
+
+.live-status--live .live-status__dot {
+  background: var(--color-success-text);
+}
+
+.live-status--reconnecting {
+  color: var(--color-warning-text);
+  background: var(--color-warning-bg);
+}
+
+.live-status--reconnecting .live-status__dot {
+  background: var(--color-warning-text);
+}
+
+/* ---------- Smaller screens ---------- */
+@media (max-width: 900px) {
+  /* Filters move above the products: categories become a wrapping row. */
+  .shop-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+
+  .filters-sidebar {
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 16px 32px;
+  }
+
+  .filter-group {
+    flex: 1 1 100%;
+  }
+
+  .filter-group:first-child {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .filter-group:first-child .filter-group__title {
+    margin-bottom: 14px;
+  }
+
+  .filter-group:first-child .filter-option {
+    padding: 3px 12px;
+    font-size: 0.82rem;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 999px;
+    background: var(--color-surface);
+  }
+
+  .filter-group:first-child .filter-option:has(input:checked) {
+    border-color: var(--color-ink);
+    background: var(--color-ink);
+    color: var(--color-on-dark);
+  }
+
+  .cart-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .order-summary {
+    position: static;
+  }
+
+  .site-footer__brand {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .site-header {
+    position: static;
+  }
+
+  .site-header__inner {
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+
+  .site-nav {
+    gap: 8px 20px;
+  }
+
+  .toolbar__select {
+    flex: 1 1 140px;
+  }
+
+  /* iPhone Safari zooms into fields with text under 16px when tapped; keep 16px on phones. */
+  .toolbar input[type="search"],
+  .toolbar select {
+    font-size: 16px;
+  }
+
+  .toolbar__select select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .auth-form {
+    padding: 28px 20px;
+  }
+
+  .cart-line {
+    grid-template-columns: 80px 1fr;
+  }
+}
+
+/* Respect users who ask their OS for less motion: no lifts or zooms, and a slow pulse instead
+   of a spinning loader. */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .product-card,
+  .product-card__image {
+    transition: none;
+  }
+
+  .product-card:hover {
+    transform: none;
+  }
+
+  .product-card:hover .product-card__image {
+    transform: none;
+  }
+}

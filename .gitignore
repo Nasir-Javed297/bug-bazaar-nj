@@ -1,2 +1,17 @@
+# Dependencies and build output
 node_modules
 dist
+coverage
+
+# Local environment files (copy .env.example to create one)
+.env
+.env.local
+.env.*.local
+
+# Local tool settings
+.claude/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
