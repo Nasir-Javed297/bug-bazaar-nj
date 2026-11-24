@@ -17,7 +17,12 @@ async function enableMocking(): Promise<void> {
   if (!config.enableMocks) return;
   const { worker } = await import("./mocks/browser");
   // "bypass": requests we don't mock (images, fonts...) go to the network as normal.
-  await worker.start({ onUnhandledRequest: "bypass" });
+  await worker.start({
+    onUnhandledRequest: "bypass",
+    // The worker file lives next to index.html, which is under the sub-path on GitHub Pages
+    // (import.meta.env.BASE_URL is "/" locally, "/bug-bazaar/" there).
+    serviceWorker: { url: `${import.meta.env.BASE_URL}mockServiceWorker.js` },
+  });
 }
 
 // getElementById returns `HTMLElement | null`. Strict mode forces us to handle null
@@ -37,7 +42,9 @@ void enableMocking().then(() => {
       <ErrorBoundary>
         {/* Provider makes the Redux store available to every component */}
         <Provider store={store}>
-          <BrowserRouter>
+          {/* basename: every route is relative to the site's base (/bug-bazaar/ on Pages).
+              BASE_URL ends with "/"; the router wants it without. */}
+          <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, "")}>
             <App />
           </BrowserRouter>
         </Provider>

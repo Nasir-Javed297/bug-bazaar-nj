@@ -99,6 +99,19 @@ Lighthouse accessibility is **100** on home, cart and login (`npm run a11y`). Th
 
 Every pull request into `main` (and every push to `main` / `dev`) runs [`.github/workflows/ci.yml`](.github/workflows/ci.yml) on GitHub Actions: **type check → lint → format check → tests → build**. A branch protection rule on `main` makes this `verify` check **required**, so a pull request with a failing check **can't be merged**, not even by an admin.
 
+## Live demo and deployment
+
+**Live store:** <https://nasir-javed297.github.io/bug-bazaar/> (demo account `demo@bugbazaar.dev` / `password123`). It runs entirely in the browser with the mock API, so everything works without a backend.
+
+Every push to `main` (for example merging a pull request) runs [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): checks, then a build under the repository's sub-path, then publishing to GitHub Pages. To redeploy by hand: **Actions → Deploy → Run workflow**.
+
+To try the GitHub Pages build locally (in Git Bash, `MSYS_NO_PATHCONV=1` stops it from rewriting the path):
+
+```bash
+MSYS_NO_PATHCONV=1 BASE_PATH=/bug-bazaar/ npm run build
+npm run preview -- --base /bug-bazaar/
+```
+
 ## Data layer
 
 Components never call `fetch`. Every request goes through `src/api/client.ts`, usually via the RTK Query hooks in `src/api/apiSlice.ts` (for example `useGetProductsQuery`). ESLint reports any `fetch` outside `src/api/` and `src/mocks/` as an error.

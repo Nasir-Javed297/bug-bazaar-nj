@@ -411,7 +411,7 @@ Stale data is fine when **being slightly out of date can't cause a wrong outcome
 
 **Also:** GitHub warned that `actions/checkout@v4` and `actions/setup-node@v4` run on the deprecated Node 20 runtime, so both were moved to `@v5`.
 
-**Bonus (auto-deploy `main`): not done.** Deploying would mean publishing the store (with its mock API) to GitHub Pages under `/bug-bounty-starter/`, which needs a Vite `base`, a router `basename`, image paths and the MSW worker path to all respect that sub-path. I prioritised the required tasks. The CI job's `dist/` output is ready for it.
+**Bonus (auto-deploy `main`): done after the deadline**, see [Auto-deploy to GitHub Pages](#auto-deploy-to-github-pages-d4-6-bonus-after-d5-9) below. (At the time it was skipped: the sub-path work was left for after the required tasks.)
 
 **Considered:**
 
@@ -648,3 +648,19 @@ Also named: render prop (`QueryStateView`), network facade enforced by ESLint, i
 **Tests:** `src/test/cardAddToCart.test.tsx` (3): adding stays on the list and updates the header and the card; a sold-out product can't be added; a product whose whole stock is in the cart can't be added again. 42 tests pass.
 
 **Supersedes:** the Theme entry's note that adding to the cart happens only on the product page.
+
+## Auto-deploy to GitHub Pages (D4-6 bonus, after D5-9)
+
+**Done:** [`.github/workflows/deploy.yml`](../.github/workflows/deploy.yml) publishes the store to **GitHub Pages** on every push to `main` (so merging a PR deploys it), at `https://nasir-javed297.github.io/bug-bazaar/`. It can also be run by hand (Actions → Deploy → Run workflow). The mock API runs inside the browser, so the live site needs no backend: 5,000 products, login, checkout and live stock all work.
+
+- **Checks first:** the workflow runs `npm run check` (typecheck, lint, format, tests) before building, so a broken build is never published.
+- **The sub-path:** Pages serves a project site under the repository's name (`/bug-bazaar/`), not at the domain root. Five things had to respect it: Vite's `base` (from `BASE_PATH`, default `/`), the router's `basename`, the MSW service-worker URL, the product image paths, and the error page's "Back to the shop" link. All read `import.meta.env.BASE_URL`, so local development and tests still run at `/`.
+- **Name-independent:** the workflow sets `BASE_PATH` from the repository's own name (`github.event.repository.name`), so renaming the repository (`bug-bounty-starter` → `bug-bazaar`) needs no code change.
+- **Deep links:** Pages can't send every path to `index.html`, but it serves `404.html` for unknown paths. The workflow copies `index.html` to `404.html`, so opening or refreshing `/bug-bazaar/products/p-0042` loads the app, and the router shows the product. (Those direct loads return HTTP status 404 under the hood; the page works, but search engines would treat them as missing. Fine for a demo store.)
+- **API calls:** the app still calls `/api/...` at the domain root. On Pages nothing exists there, but MSW answers before the request leaves the browser. Without mocks, `VITE_API_BASE_URL` would point at a real API.
+
+**Tested locally** with the same build (`BASE_PATH=/bug-bazaar/`, served by `vite preview --base /bug-bazaar/`): products and images load, the mock API's service worker is scoped to `/bug-bazaar/`, a direct link to a product page works, live stock connects, and opening `/checkout` logged out redirects to `/bug-bazaar/login`. The normal build is unchanged (assets at `/assets/`), 42 tests pass and Lighthouse accessibility stays 100.
+
+**Found while testing:** building in Git Bash on Windows turned `BASE_PATH=/bug-bazaar/` into `/Program Files/Git/bug-bazaar/` (Git Bash rewrites Unix-looking paths). That only affects local Windows builds; GitHub's Linux runners don't do it. Locally, prefix the command with `MSYS_NO_PATHCONV=1`.
+
+**Considered:** _Netlify or Vercel_ serve at the domain root, so no sub-path changes, but they need a separate account and access to the repository. GitHub Pages keeps everything in GitHub.

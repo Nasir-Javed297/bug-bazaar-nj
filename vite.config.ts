@@ -4,6 +4,10 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+  // Where the site is served from. "/" locally; the GitHub Pages deploy (bonus, D4-6) builds with
+  // BASE_PATH=/<repository name>/ (e.g. /bug-bazaar/) because Pages serves the site under it.
+  // Vite exposes it to the app as import.meta.env.BASE_URL.
+  base: process.env.BASE_PATH ?? "/",
   optimizeDeps: {
     // MSW is loaded with a dynamic import() (src/main.tsx), so Vite would only discover it after
     // the page starts, then re-bundle and force a full page reload. Listing it here pre-bundles it

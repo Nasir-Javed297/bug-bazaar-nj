@@ -27,7 +27,7 @@ export function ErrorFallback({ errorId, onReset }: ErrorFallbackProps) {
             Try again
           </button>
           {/* A full page load: the safest way back if something in memory is broken. */}
-          <a href="/" className="button button--secondary">
+          <a href={import.meta.env.BASE_URL} className="button button--secondary">
             Go to the home page
           </a>
         </div>
